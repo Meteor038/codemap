@@ -14,7 +14,7 @@
 
 :root{
   --font-ui:var(--font-pixel),var(--font-cjk),sans-serif;
-  --font-mono:"Cascadia Code",Consolas,"JetBrains Mono",monospace;
+  --font-mono:"Cascadia Code",Consolas,"JetBrains Mono",var(--font-cjk),monospace;
   --font-pixel:"FusionPixel12";
 --font-cjk:"Microsoft YaHei",system-ui,sans-serif;
 --font-display:var(--font-ui);
@@ -113,7 +113,7 @@ input{font:inherit;color:inherit}
 .menubar{
   height:38px;flex:none;display:flex;align-items:center;gap:8px;
   padding:0 0 0 10px;border-bottom:1px solid var(--border);background:var(--bg-soft);
-  position:relative;z-index:30;
+  position:relative;z-index:75;
   app-region:drag;-webkit-app-region:drag;
 }
 /* 可点元素退出拖动区，空白处（spacer/间隙/内边距）拖动窗口 */
@@ -218,15 +218,20 @@ body.no-right #right{display:none}
 .modal.on{display:flex}
 .modal .box{width:min(560px,88vw);background:var(--bg);border:1px solid var(--border-strong);
   border-radius:12px;box-shadow:var(--shadow);padding:18px 20px;animation:dropIn .14s ease}
-.modal .box h3{margin:0 0 10px;font-size:15px}
+.modal .box h3{margin:0 0 8px;font-size:15px}
 .modal .box p{margin:0 0 8px;font-size:12px;color:var(--text-2);line-height:1.6}
-.modal .box .keys{width:100%;border-collapse:collapse;font-size:13px}
-.modal .box .keys td{padding:5px 4px;border-bottom:1px solid var(--border)}
+.modal .box .keys{width:100%;border-collapse:collapse;font-size:12px}
+.modal .box .keys td{padding:3px 4px;border-bottom:1px solid var(--border);white-space:normal;overflow:visible;text-overflow:clip}
 .modal .box .keys td:first-child{font-family:var(--font-mono);color:var(--accent);white-space:nowrap;width:96px}
 .modal .box .acts{display:flex;justify-content:flex-end;margin-top:14px}
 .modal .box .acts button{height:30px;padding:0 14px;border-radius:7px;border:1px solid var(--border-strong);
   background:var(--bg);font-size:12px;cursor:pointer}
 .modal .box .acts button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal .box .keys th{font-weight:500;color:var(--text-3);font-size:11.5px;text-align:left;padding:4px}
+#helpModal .box{width:min(720px,92vw);max-height:calc(100vh - 38px - 28px);display:flex;flex-direction:column}
+#helpModal #helpBody{overflow:auto;min-height:0;flex:1;padding-right:2px}
+#helpModal .box .acts{flex:none}
+#helpModal #helpBody thead th{position:sticky;top:0;background:var(--bg);z-index:1}
 
 /* ---------- 语言 / 字体 / 语言包 ---------- */
 .sp-title{font-size:10.5px;color:var(--text-3);letter-spacing:.06em;margin:12px 0 6px;text-transform:uppercase}
@@ -543,6 +548,45 @@ svg.map text{font-family:var(--font-mix)}
 .vw-body[data-mode="text"] pre.code{border:none;border-radius:0;background:var(--bg);padding:10px 0;min-height:100%}
 .vw-body[data-mode="note"]{display:flex;align-items:center;justify-content:center;padding:30px;background:var(--bg-sunken)}
 #viewer.wrap .vw-body[data-mode="text"] pre.code .ln{white-space:pre-wrap;overflow-wrap:anywhere}
+/* ---------- 编辑器（代码/文本 + CSV/TSV） ---------- */
+#vwEdit{display:none}
+#vwSaveAs{display:none}
+#viewer.edit #vwSaveAs{display:inline-flex}
+#viewer.edit .vw-chk{display:none}
+#viewer.edit #vwEdit{display:none !important}
+#vwAddRow{display:none}
+#viewer.edit-sheet #vwAddRow{display:inline-flex}
+#vwEnc{display:none;height:30px;border:1px solid var(--border);border-radius:7px;
+  background:var(--bg);color:var(--text-2);font-size:12px;padding:0 6px;
+  font-family:var(--font-mono)}
+#viewer.edit-text #vwEnc,
+#viewer.text-view #vwEnc{display:inline-block}
+#viewer.ed-dirty .vw-title::after{content:' •';color:var(--accent)}
+.vw-body[data-mode="edit"]{overflow:hidden;padding:0}
+.ed{display:flex;flex-direction:column;height:100%;min-height:0}
+.ed-main{flex:1;display:flex;min-height:0}
+.ed-gut{flex:none;width:54px;margin:0;padding:10px 8px 10px 0;text-align:right;overflow:hidden;
+  color:var(--text-3);background:var(--bg-soft);border-right:1px solid var(--border);
+  font-family:var(--font-mono);font-size:12px;line-height:1.55;user-select:none}
+.ed-ta{flex:1;border:0;outline:0;resize:none;padding:10px 14px;background:var(--bg);color:var(--text);
+  font-family:var(--font-mono);font-size:12px;line-height:1.55;white-space:pre;overflow:auto;tab-size:2}
+.ed-grid-wrap{flex:1;overflow:auto;min-height:0}
+.ed-grid{border-collapse:collapse;font-size:12px;font-family:var(--font-mono)}
+.ed-grid td{border:1px solid var(--border);padding:3px 8px;white-space:pre;min-width:64px;
+  vertical-align:top;outline:none}
+.ed-grid td:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+/* xlsx 专用：工作表标签 + 行列号 */
+.xl-tabs{flex:none;display:flex;gap:2px;padding:5px 10px;border-bottom:1px solid var(--border);
+  overflow:auto;background:var(--bg-soft)}
+.xl-tab{height:24px;padding:0 10px;border:1px solid transparent;border-radius:6px;background:none;
+  color:var(--text-2);font-size:12px;cursor:pointer;white-space:nowrap}
+.xl-tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--border)}
+.xl-grid th.rn{background:var(--bg-soft);color:var(--text-3);font-weight:400;font-size:11px;
+  text-align:right;padding:2px 6px;border:1px solid var(--border);position:sticky;left:0;z-index:1}
+.xl-grid thead th{position:sticky;top:0;background:var(--bg-soft);color:var(--text-3);
+  font-weight:400;z-index:2}
+.xl-grid thead th.rn{z-index:3}
+.xl-grid td{min-width:72px;white-space:pre}
 .pv-note{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:22px 26px;
   max-width:440px;text-align:center;box-shadow:var(--shadow)}
 .pv-note h4{margin:0 0 8px;font-size:14px;font-weight:400;font-family:var(--font-display)}
@@ -597,6 +641,7 @@ svg.map text{font-family:var(--font-mix)}
       <div class="drop">
         <button class="mi" data-act="shortcuts"><span class="tick sp">·</span>快捷键</button>
         <button class="mi" data-act="search"><span class="tick sp">·</span>搜索语法</button>
+        <button class="mi" data-act="preview"><span class="tick sp">·</span>预览格式</button>
         <button class="mi" data-act="about"><span class="tick sp">·</span>关于 CodeMap</button>
       </div>
     </div>
@@ -697,6 +742,10 @@ svg.map text{font-family:var(--font-mix)}
     <span class="vw-title" id="vwTitle"></span>
     <span class="vw-meta" id="vwMeta"></span>
     <span style="flex:1"></span>
+    <button class="btn ghost" id="vwEdit">编辑</button>
+    <select id="vwEnc" title="编码"></select>
+    <button class="btn ghost" id="vwAddRow">添加行</button>
+    <button class="btn ghost" id="vwSaveAs">另存为</button>
     <label class="vw-chk"><input type="checkbox" id="vwWrap" checked> 自动换行</label>
     <button class="btn ghost" id="vwClose">关闭</button>
   </div>
@@ -761,10 +810,10 @@ svg.map text{font-family:var(--font-mix)}
 /* 词典以**简体原文**为键：简体模式零词典、天然回退；语言包作者只需
    提供 { "中文原文": "译文" } 即可，门槛最低。 */
 const I18N = {
-  'zh-CN': { n:'简体中文', m:{} },
-  'zh-TW': { n:'繁體中文', m:{" · 用时 ":" · 用時 "," 个文件":" 個檔案"," 个文件 · ":" 個檔案 · "," 个条目":" 個條目"," 字节（共 ":" 位元組（共 "," 字节）":" 位元組）"," 文件，不参与行数统计":" 檔案，不參與行數統計"," 秒":" 秒"," 行":" 行"," 行，共 ":" 行，共 "," 页 ——":" 頁 ——","(空文件)":"(空檔案)","7-Zip 压缩包":"7-Zip 壓縮包","AAC 音频":"AAC 音訊","AVI 视频":"AVI 影片","AVIF 图片":"AVIF 圖片","Access 数据库":"Access 資料庫","Android 包":"Android 包","AutoCAD 图纸":"AutoCAD 圖紙","BMP 图片":"BMP 圖片","C++ 头":"C++ 頭","C/C++ 头":"C/C++ 頭","CAD 交换文件":"CAD 交換檔案","CSV 表格":"CSV 表格","ELF 可执行":"ELF 可執行","EOT 字体":"EOT 字型","Excel 表格":"Excel 表格","FLAC 音频":"FLAC 音訊","Flash 视频":"Flash 影片","GIF 图片":"GIF 圖片","HEX 固件":"HEX 韌體","IGES 模型":"IGES 模型","JAR 包":"JAR 包","JPEG 图片":"JPEG 圖片","Keil 工程":"Keil 工程","Keil 选项":"Keil 選項","M4A 音频":"M4A 音訊","M4V 视频":"M4V 影片","MP3 音频":"MP3 音訊","MP4 视频":"MP4 影片","Matroska 视频":"Matroska 影片","ODF 文本":"ODF 文字","ODF 演示":"ODF 演示","ODF 表格":"ODF 表格","OGG 音频":"OGG 音訊","OpenType 字体":"OpenType 字型","PDF 文档":"PDF 文件","PNG 图片":"PNG 圖片","QuickTime 视频":"QuickTime 影片","RAR 压缩包":"RAR 壓縮包","RTF 文档":"RTF 文件","Rhino 插件包":"Rhino 外掛包","Rhino 模型":"Rhino 模型","SQLite 数据库":"SQLite 資料庫","STEP 模型":"STEP 模型","STL 模型":"STL 模型","STM32CubeMX 配置":"STM32CubeMX 配置","SVG 矢量图":"SVG 向量圖","TIFF 图片":"TIFF 圖片","TSV 表格":"TSV 表格","TrueType 字体":"TrueType 字型","VS Code 插件":"VS Code 外掛","WAV 音频":"WAV 音訊","WMV 视频":"WMV 影片","WOFF 字体":"WOFF 字型","WOFF2 字体":"WOFF2 字型","WebM 视频":"WebM 影片","WebP 图片":"WebP 圖片","Windows 动态库":"Windows 動態庫","Windows 可执行":"Windows 可執行","Windows 安装包":"Windows 安裝包","Word 文档":"Word 文件","ZIP 压缩包":"ZIP 壓縮包","[CodeMap] 扫描失败":"[CodeMap] 掃描失敗","bzip2 归档":"bzip2 歸檔","gzip 归档":"gzip 歸檔","macOS 镜像":"macOS 映象","tar 归档":"tar 歸檔","xz 归档":"xz 歸檔","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · 保留所有權利","· 60+ 语言识别，6 套皮肤 × 6 套语言配色，强调色自定义":"· 60+ 語言識別，6 套皮膚 × 6 套語言配色，強調色自定義","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· 內建預覽：程式碼高亮 / 圖片 / 音影片 / PDF / Office 文件 / CSV / 壓縮包","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· 右鍵複製路徑 · 匯出 PNG · 一鍵忽略 node_modules 等依賴目錄","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· 地圖 / 列表雙檢視，程式碼行 · 體積 · 檔案數三種度量","—— 第 ":"—— 第 ","不支持的压缩方式":"不支援的壓縮方式","不是有效的 ZIP 容器":"不是有效的 ZIP 容器","不联网、不上传任何文件、无遥测、无常驻进程":"不聯網、不上傳任何檔案、無遙測、無常駐程序","二进制":"二進位制","二进制镜像":"二進位制映象","仅列出清单，不解压全部内容":"僅列出清單，不解壓全部內容","仅显示前 ":"僅顯示前 ","仅显示前 400 行":"僅顯示前 400 行","代码":"程式碼","代码等宽":"程式碼等寬","代码行":"程式碼行","代码预览":"程式碼預覽","体积":"體積","依赖锁定":"依賴鎖定","修改时间":"修改時間","光盘镜像":"光碟映象","全屏展开":"全屏展開","共享库":"共享庫","关":"關","关于 CodeMap":"關於 CodeMap","关闭":"關閉","关闭弹层 / 预览":"關閉彈層 / 預覽","其他":"其他","内置":"內建","准备中":"準備中","准备中…":"準備中…","列表":"列表","十六进制":"十六進位制","十六进制视图 · 显示前 ":"十六進位制檢視 · 顯示前 ","午夜紫":"午夜紫","单击":"單擊","单色":"單色","占根目录":"佔根目錄","卸载":"卸載","压缩包":"壓縮包","压缩包内含 ":"壓縮包內含 ","原始大小（字节）":"原始大小（位元組）","原生 Win32 + WebView2":"原生 Win32 + WebView2","双击":"雙擊","双击打开":"雙擊開啟","双击进入":"雙擊進入","可下钻的矩形地图":"可下鑽的矩形地圖","名称":"名稱","图标":"圖示","图片":"圖片","地图":"地圖","复制失败":"複製失敗","复制文件名":"複製檔名","复制相对路径":"複製相對路徑","复制绝对路径":"複製絕對路徑","外观":"外觀","子目录":"子目錄","字体":"字型","字体已更新":"字型已更新","字体设置":"字型設定","字体设置只影响本机显示，语言包作者可在包内附带推荐字体。":"字型設定只影響本機顯示，語言包作者可在包內附帶推薦字型。","安装":"安裝","容器里找不到正文部件":"容器裡找不到正文部件","导入语言包…":"匯入語言包…","导出为图片":"匯出為圖片","导出失败":"匯出失敗","导出失败：图片渲染错误":"匯出失敗：圖片渲染錯誤","导出模板":"匯出範本","尚未载入项目":"尚未載入專案","展开左侧面板":"展開左側面板","展开详情面板":"展開詳情面板","左侧面板":"左側面板","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"已從文件 XML 中提取純文字，樣式、圖片與分頁不在此顯示","已包含全部目录（大项目会明显变慢）":"已包含全部目錄（大專案會明顯變慢）","已包含全部目录，重新扫描中…":"已包含全部目錄，重新掃描中…","已卸载语言包：":"已卸載語言包：","已复制文件名：":"已複製檔名：","已复制相对路径：":"已複製相對路徑：","已复制绝对路径：":"已複製絕對路徑：","已安装":"已安裝","已安装语言包：":"已安裝語言包：","已导出 PNG：":"已匯出 PNG：","已忽略依赖与产物目录，重新扫描中…":"已忽略依賴與產物目錄，重新掃描中…","已忽略依赖与构建产物目录":"已忽略依賴與構建產物目錄","已读取 ":"已讀取 ","帮助":"幫助","帮助菜单":"幫助選單","度量":"度量","度量菜单":"度量選單","开":"開","开始使用":"開始使用","强调色":"強調色","当前浏览器不支持解压":"當前瀏覽器不支援解壓","当前项目（点击打开文件夹）":"當前專案（點選開啟資料夾）","微软正黑":"微軟正黑","微软雅黑":"微軟雅黑","快捷键":"快捷鍵","忽略":"忽略","思源黑体":"思源黑體","总行数":"總行數","恢复默认":"恢復預設","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"開啟任意程式碼目錄，按程式碼量、體積或檔案數渲染成可下鑽的矩形地圖：面積越大體量越大，顏色代表語言。單擊看詳情，雙擊進入目錄。","打开文件夹":"開啟資料夾","扫描失败：":"掃描失敗：","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"把程式碼資料夾直接拖到這裡即可渲染成矩形地圖：面積越大體量越大，顏色代表語言。單擊看詳情，雙擊進入目錄。","把任意本地代码目录渲染成":"把任意原生代碼目錄渲染成","把文件夹变成一张可下钻的地图":"把資料夾變成一張可下鑽的地圖","拖动调整宽度":"拖動調整寬度","搜索文件…":"搜尋檔案…","收起左侧面板":"收起左側面板","收起面板":"收起面板","数字与点阵":"數字與點陣","数据库":"資料庫","文件":"檔案","文件大小 ":"檔案大小 ","文件数":"檔案數","文件菜单":"檔案選單","文件超过 ":"檔案超過 ","文件较大，仅读取前 ":"檔案較大，僅讀取前 ","文档正文":"文件正文","文档里没有提取到可见文本":"文件裡沒有提取到可見文字","无印":"無印","无可读内容":"無可讀內容","无法解析该文档正文：":"無法解析該文件正文：","日志":"日誌","暖调":"暖調","最大化 / 还原":"最大化 / 還原","最大的子项":"最大的子項","最小化":"最小化","未取得项目根目录，无法拼接绝对路径":"未取得專案根目錄，無法拼接絕對路徑","未统计":"未統計","未载入项目":"未載入專案","条目头损坏":"條目頭損壞","极光":"極光","极简白":"極簡白","构成":"構成","柔和":"柔和","查看详情":"檢視詳情","根目录":"根目錄","概览":"概覽","正在扫描…":"正在掃描…","汇编":"彙編","没有匹配的内容":"沒有匹配的內容","没有读到内容":"沒有讀到內容","注释":"註釋","注释率":"註釋率","注释行":"註釋行","浏览器扩展":"瀏覽器擴充套件","混合文本":"混合文字","点「打开文件夹」载入本地目录后，即可查看文件正文。":"點「開啟資料夾」載入本地目錄後，即可檢視檔案正文。","点击切换度量":"點選切換度量","点击切换忽略规则":"點選切換忽略規則","点击切换视图":"點選切換檢視","版本 1.4.11 (x64) · 单文件 · 免安装":"版本 1.4.11 (x64) · 單檔案 · 免安裝","电子书":"電子書","界面文字":"介面文字","界面语言":"介面語言","皮肤":"皮膚","目录":"目錄","目录树":"目錄樹","目标文件":"目標檔案","知道了":"知道了","空行":"空行","等宽通用":"等寬通用","管理语言包":"管理語言包","类型":"型別","系统默认":"系統預設","纯文本":"純文字","纸感":"紙感","终端":"終端","经典":"經典","聚焦搜索框":"聚焦搜尋框","自动":"自動","自动换行":"自動換行","自定义…":"自訂…","色板":"色板","落日":"落日","行":"行","表格":"表格","被分析的代码全程留在本机，不上传任何内容":"被分析的程式碼全程留在本機，不上傳任何內容","规模":"規模","视图":"檢視","视图菜单":"檢視選單","视频":"影片","该语言包缺少部分译文，缺失处将回退为简体中文":"該語言包缺少部分譯文，缺失處將回退為簡體中文","详情":"詳情","详情面板":"詳情面板","语言":"語言","语言包":"語言包","语言包加载失败：":"語言包載入失敗：","语言包已导出到下载目录":"語言包已匯出到下載目錄","语言包文件（*.json）":"語言包檔案（*.json）","语言包格式不正确：需包含 name 与 dict 字段":"語言包格式不正確：需包含 name 與 dict 欄位","语言配色":"語言配色","请先切换到「地图」视图再导出":"請先切換到「地圖」檢視再匯出","请先用「打开文件夹」载入一个目录":"請先用「開啟資料夾」載入一個目錄","读取中…":"讀取中…","读取失败":"讀取失敗","调试符号":"除錯符號","赛博":"賽博","跟随皮肤":"跟隨皮膚","路径":"路徑","输入字体名，多个用逗号分隔":"輸入字型名稱，多個用逗號分隔","这个文件没有可供预览的源文本":"這個檔案沒有可供預覽的源文字","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"這個瀏覽器不支援拖拽目錄，請改用「開啟資料夾」","这个目录是空的":"這個目錄是空的","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"這個目錄裡沒有可統計的文字檔案（試試關閉忽略規則）","这类文件不按文本解析":"這類檔案不按文字解析","进入此目录":"進入此目錄","进入目录":"進入目錄","选中一个矩形或文件查看详情":"選中一個矩形或檔案檢視詳情","选择界面语言":"選擇介面語言","配置":"配置","重新载入":"重新載入","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"隨時可以在「外觀」面板裡更改語言、安裝語言包或調整字型。","隐私承诺：全程在本机运行，":"隱私承諾：全程在本機執行，","霓虹":"霓虹","静态库":"靜態庫","音频":"音訊","项目":"專案","预览":"預覽","预览此文件":"預覽此檔案","，可下载后用对应软件打开。":"，可下載後用對應軟體開啟。","，未逐行统计":"，未逐行統計","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":"：面積越大體量越大，顏色代表語言，雙擊即可逐層深入。","匹配 {n} 项":"符合 {n} 項","仅显示前 {n} 项，共 {m} 项":"僅顯示前 {n} 項，共 {m} 項","匹配项均为文件夹，请切换到列表视图查看":"符合項均為資料夾，請切換到清單檢視查看","搜索语法":"搜尋語法","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"搜尋語意對齊 Everything：空格 = 並且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的詞組；* 與 ? 為萬用字元。","空格 = 并且，| 表示或者，! 或 - 表示排除":"空格 = 並且，| 表示或者，! 或 - 表示排除","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"預設比對檔名子字串，全樹搜尋；* 與 ? 為萬用字元","操作符":"運算子","说明":"說明","按扩展名筛选（可多值：js;ts）":"依副檔名篩選（可多值：js;ts）","路径包含该文本":"路徑包含該文字","上级文件夹包含该文本":"上層資料夾包含該文字","只匹配文件":"只符合檔案","只匹配文件夹":"只符合資料夾","按体积：>1mb、<10kb、1mb..10mb":"依體積：>1mb、<10kb、1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"依修改時間：today、>2026-01-01、2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"區分大小寫（前置開關）","正则匹配文件名":"以正規表達式比對檔名","整个文件名匹配（含通配符）":"整個檔名比對（含萬用字元）","以…开头 / 以…结尾 / 整词匹配":"以…開頭 / 以…結尾 / 整詞比對","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"支援 ext: path: size: ! | * 等語法，詳見「說明 → 搜尋語法」","来源与许可":"來源與授權","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"查詢語法參考 voidtools Everything（作者 David Carpenter）。Everything 為免費軟體，但其原始碼並未公開（其二進位檔按類 MIT 授權散布）；本實作為獨立編寫，未使用其任何程式碼，僅對齊其使用者可見的查詢語法。","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything 風格搜尋：ext: / path: / size: / dm: 等運算子，全樹即時比對","十六进制视图":"十六進位制檢視","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"語言包 id 無效（只能用字母數字底線與連字號，且不能與內建語言重名）","偏好":"偏好"} },
-  'en':    { n:'English',  m:{" · 用时 ":" · took "," 个文件":" files"," 个文件 · ":" files · "," 个条目":" entries"," 字节（共 ":" bytes of "," 字节）":" bytes)"," 文件，不参与行数统计":" file, excluded from line counts"," 秒":"s"," 行":" lines"," 行，共 ":" lines shown of "," 页 ——":" —","(空文件)":"(empty file)","7-Zip 压缩包":"7-Zip archive","AAC 音频":"AAC audio","AVI 视频":"AVI video","AVIF 图片":"AVIF image","Access 数据库":"Access database","Android 包":"Android package","AutoCAD 图纸":"AutoCAD drawing","BMP 图片":"BMP image","C++ 头":"C++ header","C/C++ 头":"C/C++ header","CAD 交换文件":"CAD exchange file","CSV 表格":"CSV table","ELF 可执行":"ELF executable","EOT 字体":"EOT font","Excel 表格":"Excel spreadsheet","FLAC 音频":"FLAC audio","Flash 视频":"Flash video","GIF 图片":"GIF image","HEX 固件":"HEX firmware","IGES 模型":"IGES model","JAR 包":"JAR package","JPEG 图片":"JPEG image","Keil 工程":"Keil project","Keil 选项":"Keil options","M4A 音频":"M4A audio","M4V 视频":"M4V video","MP3 音频":"MP3 audio","MP4 视频":"MP4 video","Matroska 视频":"Matroska video","ODF 文本":"ODF text","ODF 演示":"ODF presentation","ODF 表格":"ODF spreadsheet","OGG 音频":"OGG audio","OpenType 字体":"OpenType font","PDF 文档":"PDF document","PNG 图片":"PNG image","QuickTime 视频":"QuickTime video","RAR 压缩包":"RAR archive","RTF 文档":"RTF document","Rhino 插件包":"Rhino plug-in package","Rhino 模型":"Rhino model","SQLite 数据库":"SQLite database","STEP 模型":"STEP model","STL 模型":"STL model","STM32CubeMX 配置":"STM32CubeMX config","SVG 矢量图":"SVG vector","TIFF 图片":"TIFF image","TSV 表格":"TSV table","TrueType 字体":"TrueType font","VS Code 插件":"VS Code extension","WAV 音频":"WAV audio","WMV 视频":"WMV video","WOFF 字体":"WOFF font","WOFF2 字体":"WOFF2 font","WebM 视频":"WebM video","WebP 图片":"WebP image","Windows 动态库":"Windows DLL","Windows 可执行":"Windows executable","Windows 安装包":"Windows installer","Word 文档":"Word document","ZIP 压缩包":"ZIP archive","[CodeMap] 扫描失败":"[CodeMap] scan failed","bzip2 归档":"bzip2 archive","gzip 归档":"gzip archive","macOS 镜像":"macOS image","tar 归档":"tar archive","xz 归档":"xz archive","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · All rights reserved","· 60+ 语言识别，6 套皮肤 × 6 套语言配色，强调色自定义":"· 60+ languages; 6 skins × 6 language palettes; custom accent colour","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· Built-in preview: highlighted code, images, audio/video, PDF, Office, CSV, archives","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· Copy paths from the context menu · export PNG · ignore node_modules and friends","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· Map and list views; lines, size and file count metrics","—— 第 ":"— page ","不支持的压缩方式":"Unsupported compression method","不是有效的 ZIP 容器":"Not a valid ZIP container","不联网、不上传任何文件、无遥测、无常驻进程":"no network, no uploads, no telemetry, no background process","二进制":"Binary","二进制镜像":"Binary image","仅列出清单，不解压全部内容":"Entries listed only — contents are not extracted","仅显示前 ":"First ","仅显示前 400 行":"First 400 lines only","代码":"Code","代码等宽":"Code (monospace)","代码行":"Lines of code","代码预览":"Code","体积":"Size","依赖锁定":"Dependency lockfile","修改时间":"Modified","光盘镜像":"Disc image","全屏展开":"Expand","共享库":"Shared library","关":"Off","关于 CodeMap":"About CodeMap","关闭":"Close","关闭弹层 / 预览":"Close overlay / preview","其他":"Other","内置":"Built-in","准备中":"Preparing","准备中…":"Preparing…","列表":"List","十六进制":"Hex","十六进制视图 · 显示前 ":"Hex view · showing first ","午夜紫":"Midnight purple","单击":"Click","单色":"Mono","占根目录":"Of root","卸载":"Remove","压缩包":"Archive","压缩包内含 ":"Archive contains ","原始大小（字节）":"Raw size (bytes)","原生 Win32 + WebView2":"Native Win32 + WebView2","双击":"Double-click","双击打开":"Double-click to open","双击进入":"Double-click to enter","可下钻的矩形地图":"drillable rectangle map","名称":"Name","图标":"Icon","图片":"Image","地图":"Map","复制失败":"Copy failed","复制文件名":"Copy file name","复制相对路径":"Copy relative path","复制绝对路径":"Copy absolute path","外观":"Appearance","子目录":"Subfolders","字体":"Fonts","字体已更新":"Fonts updated","字体设置":"Font settings","字体设置只影响本机显示，语言包作者可在包内附带推荐字体。":"Font settings only affect this machine. Language packs may ship recommended fonts.","安装":"Install","容器里找不到正文部件":"No body part found in the container","导入语言包…":"Import language pack…","导出为图片":"Export as image","导出失败":"Export failed","导出失败：图片渲染错误":"Export failed: image render error","导出模板":"Export template","尚未载入项目":"No project loaded","展开左侧面板":"Expand left panel","展开详情面板":"Expand details panel","左侧面板":"Left panel","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"Plain text extracted from the document XML; styling, images and pagination are not shown","已包含全部目录（大项目会明显变慢）":"All folders included (large projects will be slower)","已包含全部目录，重新扫描中…":"Including all folders, rescanning…","已卸载语言包：":"Removed language pack: ","已复制文件名：":"Copied file name: ","已复制相对路径：":"Copied relative path: ","已复制绝对路径：":"Copied absolute path: ","已安装":"Installed","已安装语言包：":"Installed language pack: ","已导出 PNG：":"Exported PNG: ","已忽略依赖与产物目录，重新扫描中…":"Ignoring dependency and build folders, rescanning…","已忽略依赖与构建产物目录":"Dependency and build folders ignored","已读取 ":"Read ","帮助":"Help","帮助菜单":"Help menu","度量":"Metric","度量菜单":"Metric menu","开":"On","开始使用":"Get started","强调色":"Accent colour","当前浏览器不支持解压":"Decompression is not supported here","当前项目（点击打开文件夹）":"Current project (click to open a folder)","微软正黑":"Microsoft JhengHei","微软雅黑":"Microsoft YaHei","快捷键":"Shortcuts","忽略":"Ignore","思源黑体":"Source Han Sans","总行数":"Total lines","恢复默认":"Restore defaults","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"Open any code folder and it becomes a drillable rectangle map sized by lines, size or file count: bigger area means bigger weight, colour means language. Click for details, double-click to enter a folder.","打开文件夹":"Open folder","扫描失败：":"Scan failed: ","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"Drop a code folder here to render it as a rectangle map: bigger area means bigger weight, colour means language. Click for details, double-click to enter a folder.","把任意本地代码目录渲染成":"Renders any local code folder as a ","把文件夹变成一张可下钻的地图":"Turn a folder into a drillable map","拖动调整宽度":"Drag to resize","搜索文件…":"Search files…","收起左侧面板":"Collapse left panel","收起面板":"Collapse panel","数字与点阵":"Numerals & dot matrix","数据库":"Database","文件":"Files","文件大小 ":"File size ","文件数":"Files","文件菜单":"File menu","文件超过 ":"File over ","文件较大，仅读取前 ":"Large file — read the first ","文档正文":"Document text","文档里没有提取到可见文本":"No visible text found in the document","无印":"Nothing","无可读内容":"Nothing to show","无法解析该文档正文：":"Could not parse the document body: ","日志":"Log","暖调":"Warm","最大化 / 还原":"Maximize / restore","最大的子项":"Largest children","最小化":"Minimize","未取得项目根目录，无法拼接绝对路径":"Project root unknown — absolute path unavailable","未统计":"Not counted","未载入项目":"No project","条目头损坏":"Corrupt entry header","极光":"Aurora","极简白":"Plain white","构成":"Composition","柔和":"Soft","查看详情":"See details","根目录":"Root","概览":"Overview","正在扫描…":"Scanning…","汇编":"Assembly","没有匹配的内容":"No matches","没有读到内容":"Nothing was read","注释":"Comment","注释率":"Comment ratio","注释行":"Comment lines","浏览器扩展":"Browser extension","混合文本":"Mixed text","点「打开文件夹」载入本地目录后，即可查看文件正文。":"Open a folder to view file contents.","点击切换度量":"Switch metric","点击切换忽略规则":"Toggle ignore rules","点击切换视图":"Switch view","版本 1.4.11 (x64) · 单文件 · 免安装":"Version 1.4.11 (x64) · single file · no install","电子书":"E-book","界面文字":"Interface text","界面语言":"Interface language","皮肤":"Skin","目录":"Folder","目录树":"Tree","目标文件":"Object file","知道了":"Got it","空行":"Blank","等宽通用":"Generic monospace","管理语言包":"Manage language packs","类型":"Type","系统默认":"System default","纯文本":"Plain text","纸感":"Paper","终端":"Terminal","经典":"Classic","聚焦搜索框":"Focus search","自动":"Auto","自动换行":"Wrap lines","自定义…":"Custom…","色板":"Palette","落日":"Dusk","行":"lines","表格":"Table","被分析的代码全程留在本机，不上传任何内容":"Everything stays on this machine — nothing is uploaded","规模":"Scale","视图":"View","视图菜单":"View menu","视频":"Video","该语言包缺少部分译文，缺失处将回退为简体中文":"This pack is missing some entries; missing text falls back to Simplified Chinese","详情":"Details","详情面板":"Details panel","语言":"Language","语言包":"Language packs","语言包加载失败：":"Failed to load language pack: ","语言包已导出到下载目录":"Language pack exported to your downloads folder","语言包文件（*.json）":"Language pack (*.json)","语言包格式不正确：需包含 name 与 dict 字段":"Invalid language pack: \"name\" and \"dict\" fields are required","语言配色":"Language palette","请先切换到「地图」视图再导出":"Switch to the Map view before exporting","请先用「打开文件夹」载入一个目录":"Load a folder with “Open folder” first","读取中…":"Loading…","读取失败":"Read failed","调试符号":"Debug symbols","赛博":"Cyber","跟随皮肤":"Follow skin","路径":"Path","输入字体名，多个用逗号分隔":"Font names, comma separated","这个文件没有可供预览的源文本":"This file has no previewable source text","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"This browser cannot drop folders — use “Open folder” instead","这个目录是空的":"This folder is empty","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"No countable text files in this folder (try turning ignore rules off)","这类文件不按文本解析":"This type is not parsed as text","进入此目录":"Enter this folder","进入目录":"Enter folder","选中一个矩形或文件查看详情":"Select a rectangle or file for details","选择界面语言":"Choose your language","配置":"Config","重新载入":"Reload","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"You can change the language, install language packs or adjust fonts any time from the Appearance panel.","隐私承诺：全程在本机运行，":"Privacy: everything runs locally — ","霓虹":"Neon","静态库":"Static library","音频":"Audio","项目":"Project","预览":"Preview","预览此文件":"Preview this file","，可下载后用对应软件打开。":" — download it and open with the right app.","，未逐行统计":", not counted line by line","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":": bigger area means bigger weight, colour means language, double-click to go deeper.","匹配 {n} 项":"Matches: {n}","仅显示前 {n} 项，共 {m} 项":"Showing first {n} of {m}","匹配项均为文件夹，请切换到列表视图查看":"All matches are folders — switch to the list view","搜索语法":"Search syntax","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"Search semantics follow Everything: space = AND, | = OR, ! or - = NOT, \"\" groups a phrase; * and ? are wildcards.","空格 = 并且，| 表示或者，! 或 - 表示排除":"space = AND, | = OR, ! or - = NOT","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"Match filename substring across the whole tree; * and ? are wildcards","操作符":"Operator","说明":"Description","按扩展名筛选（可多值：js;ts）":"Filter by extension (multiple: js;ts)","路径包含该文本":"Path contains text","上级文件夹包含该文本":"Parent folder contains text","只匹配文件":"Files only","只匹配文件夹":"Folders only","按体积：>1mb、<10kb、1mb..10mb":"By size: >1mb, <10kb, 1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"By date modified: today, >2026-01-01, 2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"Case-sensitive (prefix switch)","正则匹配文件名":"Match filename by regex","整个文件名匹配（含通配符）":"Whole filename match (wildcards allowed)","以…开头 / 以…结尾 / 整词匹配":"Starts with / ends with / whole word","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"Supports ext:, path:, size:, !, |, * … see Help → Search syntax","来源与许可":"Source & licence","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"Query syntax follows voidtools Everything (by David Carpenter). Everything is freeware, but its source code is not published (its binaries ship under an MIT-style licence). This implementation is written independently and uses none of its code — only the user-visible query syntax is matched.","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything-style search: ext:, path:, size:, dm: operators, instant whole-tree matching","十六进制视图":"Hex view","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"Invalid language-pack id (letters, digits, \"_\" and \"-\" only; must not clash with a built-in language)","偏好":"Preferences"} },
-  'ja':    { n:'日本語',   m:{" · 用时 ":" · 所要 "," 个文件":" 件のファイルを読み込みました"," 个文件 · ":" ファイル · "," 个条目":" 件のエントリ"," 字节（共 ":" バイトを表示（全 "," 字节）":" バイト）"," 文件，不参与行数统计":" ファイルのため行数に含まれません"," 秒":" 秒"," 行":" 行のみ読み込み"," 行，共 ":" 行を表示（全 "," 页 ——":" ページ —","(空文件)":"(空のファイル)","7-Zip 压缩包":"7-Zip アーカイブ","AAC 音频":"AAC 音声","AVI 视频":"AVI 動画","AVIF 图片":"AVIF 画像","Access 数据库":"Access データベース","Android 包":"Android パッケージ","AutoCAD 图纸":"AutoCAD 図面","BMP 图片":"BMP 画像","C++ 头":"C++ ヘッダ","C/C++ 头":"C/C++ ヘッダ","CAD 交换文件":"CAD 交換ファイル","CSV 表格":"CSV 表","ELF 可执行":"ELF 実行ファイル","EOT 字体":"EOT フォント","Excel 表格":"Excel 表計算","FLAC 音频":"FLAC 音声","Flash 视频":"Flash 動画","GIF 图片":"GIF 画像","HEX 固件":"HEX ファームウェア","IGES 模型":"IGES モデル","JAR 包":"JAR パッケージ","JPEG 图片":"JPEG 画像","Keil 工程":"Keil プロジェクト","Keil 选项":"Keil オプション","M4A 音频":"M4A 音声","M4V 视频":"M4V 動画","MP3 音频":"MP3 音声","MP4 视频":"MP4 動画","Matroska 视频":"Matroska 動画","ODF 文本":"ODF テキスト","ODF 演示":"ODF プレゼンテーション","ODF 表格":"ODF 表計算","OGG 音频":"OGG 音声","OpenType 字体":"OpenType フォント","PDF 文档":"PDF 文書","PNG 图片":"PNG 画像","QuickTime 视频":"QuickTime 動画","RAR 压缩包":"RAR アーカイブ","RTF 文档":"RTF 文書","Rhino 插件包":"Rhino プラグインパッケージ","Rhino 模型":"Rhino モデル","SQLite 数据库":"SQLite データベース","STEP 模型":"STEP モデル","STL 模型":"STL モデル","STM32CubeMX 配置":"STM32CubeMX 設定","SVG 矢量图":"SVG ベクター画像","TIFF 图片":"TIFF 画像","TSV 表格":"TSV 表","TrueType 字体":"TrueType フォント","VS Code 插件":"VS Code 拡張機能","WAV 音频":"WAV 音声","WMV 视频":"WMV 動画","WOFF 字体":"WOFF フォント","WOFF2 字体":"WOFF2 フォント","WebM 视频":"WebM 動画","WebP 图片":"WebP 画像","Windows 动态库":"Windows DLL","Windows 可执行":"Windows 実行ファイル","Windows 安装包":"Windows インストーラー","Word 文档":"Word 文書","ZIP 压缩包":"ZIP アーカイブ","[CodeMap] 扫描失败":"[CodeMap] スキャン失敗","bzip2 归档":"bzip2 アーカイブ","gzip 归档":"gzip アーカイブ","macOS 镜像":"macOS イメージ","tar 归档":"tar アーカイブ","xz 归档":"xz アーカイブ","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · All rights reserved","· 60+ 语言识别，6 套皮肤 × 6 套语言配色，强调色自定义":"· 60 以上の言語を判定、6 スキン × 6 言語配色、アクセントカラーは自由に変更可","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· 内蔵プレビュー：コード強調表示 / 画像 / 音声・動画 / PDF / Office / CSV / アーカイブ","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· 右クリックでパスをコピー · PNG 書き出し · node_modules などを一括除外","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· マップ / リストの 2 表示、行数・サイズ・ファイル数の 3 指標","—— 第 ":"— ","不支持的压缩方式":"未対応の圧縮方式です","不是有效的 ZIP 容器":"有効な ZIP コンテナではありません","不联网、不上传任何文件、无遥测、无常驻进程":"通信・アップロード・テレメトリ・常駐プロセスはありません","二进制":"バイナリ","二进制镜像":"バイナリイメージ","仅列出清单，不解压全部内容":"一覧のみ表示し、中身は展開しません","仅显示前 ":"先頭 ","仅显示前 400 行":"先頭 400 行のみ表示","代码":"コード","代码等宽":"コード（等幅）","代码行":"コード行","代码预览":"コード","体积":"サイズ","依赖锁定":"依存ロックファイル","修改时间":"更新日時","光盘镜像":"ディスクイメージ","全屏展开":"全画面","共享库":"共有ライブラリ","关":"オフ","关于 CodeMap":"CodeMap について","关闭":"閉じる","关闭弹层 / 预览":"オーバーレイ / プレビューを閉じる","其他":"その他","内置":"内蔵","准备中":"準備中","准备中…":"準備中…","列表":"リスト","十六进制":"16 進数","十六进制视图 · 显示前 ":"16 進ビュー · 先頭 ","午夜紫":"ミッドナイトパープル","单击":"クリック","单色":"モノ","占根目录":"ルート比","卸载":"削除","压缩包":"アーカイブ","压缩包内含 ":"アーカイブ内に ","原始大小（字节）":"元のサイズ（バイト）","原生 Win32 + WebView2":"ネイティブ Win32 + WebView2","双击":"ダブルクリック","双击打开":"ダブルクリックで開く","双击进入":"ダブルクリックでフォルダに入る","可下钻的矩形地图":"掘り下げ可能な矩形マップ","名称":"名前","图标":"アイコン","图片":"画像","地图":"マップ","复制失败":"コピー失敗","复制文件名":"ファイル名をコピー","复制相对路径":"相対パスをコピー","复制绝对路径":"絶対パスをコピー","外观":"外観","子目录":"サブフォルダ","字体":"フォント","字体已更新":"フォントを更新しました","字体设置":"フォント設定","字体设置只影响本机显示，语言包作者可在包内附带推荐字体。":"フォント設定はこの PC の表示にのみ影響します。言語パックに推奨フォントを含めることもできます。","安装":"インストール","容器里找不到正文部件":"コンテナ内に本文パートが見つかりません","导入语言包…":"言語パックを読み込む…","导出为图片":"画像として書き出し","导出失败":"書き出し失敗","导出失败：图片渲染错误":"書き出し失敗：画像のレンダリングエラー","导出模板":"テンプレートを書き出す","尚未载入项目":"プロジェクトが読み込まれていません","展开左侧面板":"左パネルを展開","展开详情面板":"詳細パネルを展開","左侧面板":"左パネル","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"文書 XML からプレーンテキストを抽出したものです。書式・画像・ページ割りは表示されません","已包含全部目录（大项目会明显变慢）":"すべてのフォルダを含めます（大規模プロジェクトでは遅くなります）","已包含全部目录，重新扫描中…":"すべてのフォルダを含めて再スキャン中…","已卸载语言包：":"言語パックを削除しました：","已复制文件名：":"ファイル名をコピーしました：","已复制相对路径：":"相対パスをコピーしました：","已复制绝对路径：":"絶対パスをコピーしました：","已安装":"インストール済み","已安装语言包：":"言語パックをインストールしました：","已导出 PNG：":"PNG を書き出しました：","已忽略依赖与产物目录，重新扫描中…":"依存関係とビルド成果物を除外して再スキャン中…","已忽略依赖与构建产物目录":"依存関係とビルド成果物のフォルダを除外しました","已读取 ":"","帮助":"ヘルプ","帮助菜单":"ヘルプメニュー","度量":"指標","度量菜单":"指標メニュー","开":"オン","开始使用":"はじめる","强调色":"アクセントカラー","当前浏览器不支持解压":"この環境では展開に対応していません","当前项目（点击打开文件夹）":"現在のプロジェクト（クリックでフォルダを開く）","微软正黑":"Microsoft JhengHei","微软雅黑":"Microsoft YaHei","快捷键":"ショートカット","忽略":"除外","思源黑体":"Source Han Sans","总行数":"総行数","恢复默认":"既定に戻す","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"コードフォルダを開くと、行数・サイズ・ファイル数で大きさが決まる掘り下げ可能な矩形マップになります。面積が大きいほど比重が大きく、色は言語を表します。クリックで詳細、ダブルクリックでフォルダに入ります。","打开文件夹":"フォルダを開く","扫描失败：":"スキャン失敗：","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"コードフォルダをここにドロップすると矩形マップになります。面積が大きいほど比重が大きく、色は言語を表します。クリックで詳細、ダブルクリックでフォルダに入ります。","把任意本地代码目录渲染成":"ローカルのコードフォルダを","把文件夹变成一张可下钻的地图":"フォルダを掘り下げ可能なマップに","拖动调整宽度":"ドラッグで幅を調整","搜索文件…":"ファイルを検索…","收起左侧面板":"左パネルを畳む","收起面板":"パネルを畳む","数字与点阵":"数字・ドット","数据库":"データベース","文件":"ファイル","文件大小 ":"ファイルサイズ ","文件数":"ファイル数","文件菜单":"ファイルメニュー","文件超过 ":"ファイルサイズが ","文件较大，仅读取前 ":"ファイルが大きいため先頭 ","文档正文":"文書本文","文档里没有提取到可见文本":"文書から表示可能なテキストを抽出できませんでした","无印":"無印","无可读内容":"表示できる内容がありません","无法解析该文档正文：":"文書本文を解析できませんでした：","日志":"ログ","暖调":"ウォーム","最大化 / 还原":"最大化 / 元に戻す","最大的子项":"最大の子項目","最小化":"最小化","未取得项目根目录，无法拼接绝对路径":"プロジェクトのルートが不明なため絶対パスを生成できません","未统计":"未集計","未载入项目":"プロジェクト未読み込み","条目头损坏":"エントリヘッダが破損しています","极光":"オーロラ","极简白":"シンプルホワイト","构成":"構成","柔和":"ソフト","查看详情":"詳細を表示","根目录":"ルート","概览":"概要","正在扫描…":"スキャン中…","汇编":"アセンブリ","没有匹配的内容":"一致する内容がありません","没有读到内容":"内容を読み込めませんでした","注释":"コメント","注释率":"コメント率","注释行":"コメント行","浏览器扩展":"ブラウザ拡張","混合文本":"混在テキスト","点「打开文件夹」载入本地目录后，即可查看文件正文。":"「フォルダを開く」でローカルフォルダを読み込むと本文を表示できます。","点击切换度量":"指標を切り替え","点击切换忽略规则":"除外ルールを切り替え","点击切换视图":"表示を切り替え","版本 1.4.11 (x64) · 单文件 · 免安装":"バージョン 1.4.11 (x64) · 単一ファイル · インストール不要","电子书":"電子書籍","界面文字":"UI テキスト","界面语言":"表示言語","皮肤":"スキン","目录":"フォルダ","目录树":"ツリー","目标文件":"オブジェクトファイル","知道了":"了解","空行":"空行","等宽通用":"汎用等幅","管理语言包":"言語パックを管理","类型":"種類","系统默认":"システム既定","纯文本":"プレーンテキスト","纸感":"ペーパー","终端":"ターミナル","经典":"クラシック","聚焦搜索框":"検索ボックスに移動","自动":"自動","自动换行":"折り返し","自定义…":"カスタム…","色板":"パレット","落日":"トワイライト","行":"行","表格":"表","被分析的代码全程留在本机，不上传任何内容":"解析対象はすべてこの PC 内に留まり、何もアップロードされません","规模":"規模","视图":"表示","视图菜单":"表示メニュー","视频":"動画","该语言包缺少部分译文，缺失处将回退为简体中文":"一部の訳が欠けています。欠けた箇所は簡体字中国語で表示されます","详情":"詳細","详情面板":"詳細パネル","语言":"言語","语言包":"言語パック","语言包加载失败：":"言語パックの読み込みに失敗：","语言包已导出到下载目录":"言語パックをダウンロードフォルダに書き出しました","语言包文件（*.json）":"言語パック (*.json)","语言包格式不正确：需包含 name 与 dict 字段":"言語パックの形式が正しくありません：「name」と「dict」が必要です","语言配色":"言語配色","请先切换到「地图」视图再导出":"書き出す前に「マップ」表示に切り替えてください","请先用「打开文件夹」载入一个目录":"先に「フォルダを開く」でフォルダを読み込んでください","读取中…":"読み込み中…","读取失败":"読み込み失敗","调试符号":"デバッグシンボル","赛博":"サイバー","跟随皮肤":"スキンに追従","路径":"パス","输入字体名，多个用逗号分隔":"フォント名（カンマ区切りで複数可）","这个文件没有可供预览的源文本":"このファイルにはプレビューできるソーステキストがありません","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"このブラウザはフォルダのドロップに対応していません。「フォルダを開く」をお使いください","这个目录是空的":"このフォルダは空です","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"このフォルダには集計できるテキストファイルがありません（除外ルールをオフにしてみてください）","这类文件不按文本解析":"この形式はテキストとして解析されません","进入此目录":"このフォルダに入る","进入目录":"フォルダに入る","选中一个矩形或文件查看详情":"矩形またはファイルを選ぶと詳細を表示します","选择界面语言":"表示言語を選択","配置":"設定","重新载入":"再読み込み","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"言語の変更・言語パックの導入・フォントの調整は、いつでも「外観」パネルから行えます。","隐私承诺：全程在本机运行，":"プライバシー：すべてローカルで動作し、","霓虹":"ネオン","静态库":"静的ライブラリ","音频":"音声","项目":"プロジェクト","预览":"プレビュー","预览此文件":"このファイルをプレビュー","，可下载后用对应软件打开。":" — ダウンロードして対応アプリで開いてください。","，未逐行统计":" を超えるため行単位では集計していません","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":" として描画します。面積が大きいほど比重が大きく、色は言語を表します。ダブルクリックで階層を掘り下げられます。","匹配 {n} 项":"一致 {n} 件","仅显示前 {n} 项，共 {m} 项":"先頭 {n} 件を表示（全 {m} 件）","匹配项均为文件夹，请切换到列表视图查看":"一致した項目はすべてフォルダです。リスト表示に切り替えてください","搜索语法":"検索構文","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"検索の意味論は Everything に準拠：スペース = AND、| = OR、! または - = NOT、\"\" でフレーズを囲む、* と ? はワイルドカード。","空格 = 并且，| 表示或者，! 或 - 表示排除":"スペース = AND、| = OR、! または - = NOT","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"ファイル名の部分一致でツリー全体を検索。* と ? はワイルドカード","操作符":"演算子","说明":"説明","按扩展名筛选（可多值：js;ts）":"拡張子で絞り込み（複数可：js;ts）","路径包含该文本":"パスに含まれる","上级文件夹包含该文本":"親フォルダに含まれる","只匹配文件":"ファイルのみ","只匹配文件夹":"フォルダのみ","按体积：>1mb、<10kb、1mb..10mb":"サイズ指定：>1mb、<10kb、1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"更新日時指定：today、>2026-01-01、2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"大文字と小文字を区別（接頭辞スイッチ）","正则匹配文件名":"正規表現でファイル名を照合","整个文件名匹配（含通配符）":"ファイル名全体で照合（ワイルドカード可）","以…开头 / 以…结尾 / 整词匹配":"〜で始まる / 〜で終わる / 単語単位","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"ext: path: size: ! | * などの構文に対応。詳細は「ヘルプ → 検索構文」","来源与许可":"出典とライセンス","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"検索構文は voidtools Everything（作者 David Carpenter）に準拠。Everything はフリーソフトですがソースコードは公開されていません（バイナリは MIT 相当のライセンス）。本実装は独自に作成したもので、そのコードは一切使用しておらず、ユーザーから見える検索構文のみを合わせています。","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything 風の検索：ext: / path: / size: / dm: などの演算子でツリー全体を即時照合","十六进制视图":"16進数ビュー","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"言語パック id が不正です（英数字・アンダースコア・ハイフンのみ、組み込み言語と重複不可）","偏好":"環境設定"} }
+  "zh-CN": {"n":"简体中文","m":{}},
+  "zh-TW": {"n":"繁體中文","m":{" · 用时 ":" · 用時 "," 个文件":" 個檔案"," 个文件 · ":" 個檔案 · "," 个条目":" 個條目"," 文件，不参与行数统计":" 檔案，不參與行數統計"," 秒":" 秒"," 行":" 行"," 行，共 ":" 行，共 "," 页 ——":" 頁 ——","(空文件)":"(空檔案)","7-Zip 压缩包":"7-Zip 壓縮包","AAC 音频":"AAC 音訊","AVI 视频":"AVI 影片","AVIF 图片":"AVIF 圖片","Access 数据库":"Access 資料庫","Android 包":"Android 包","AutoCAD 图纸":"AutoCAD 圖紙","BMP 图片":"BMP 圖片","C++ 头":"C++ 頭","C/C++ 头":"C/C++ 頭","CAD 交换文件":"CAD 交換檔案","CSV 表格":"CSV 表格","ELF 可执行":"ELF 可執行","EOT 字体":"EOT 字型","Excel 表格":"Excel 表格","FLAC 音频":"FLAC 音訊","Flash 视频":"Flash 影片","GIF 图片":"GIF 圖片","HEX 固件":"HEX 韌體","IGES 模型":"IGES 模型","JAR 包":"JAR 包","JPEG 图片":"JPEG 圖片","Keil 工程":"Keil 工程","Keil 选项":"Keil 選項","M4A 音频":"M4A 音訊","M4V 视频":"M4V 影片","MP3 音频":"MP3 音訊","MP4 视频":"MP4 影片","Matroska 视频":"Matroska 影片","ODF 文本":"ODF 文字","ODF 演示":"ODF 演示","ODF 表格":"ODF 表格","OGG 音频":"OGG 音訊","OpenType 字体":"OpenType 字型","PDF 文档":"PDF 文件","PNG 图片":"PNG 圖片","QuickTime 视频":"QuickTime 影片","RAR 压缩包":"RAR 壓縮包","RTF 文档":"RTF 文件","Rhino 插件包":"Rhino 外掛包","Rhino 模型":"Rhino 模型","SQLite 数据库":"SQLite 資料庫","STEP 模型":"STEP 模型","STL 模型":"STL 模型","STM32CubeMX 配置":"STM32CubeMX 配置","SVG 矢量图":"SVG 向量圖","TIFF 图片":"TIFF 圖片","TSV 表格":"TSV 表格","TrueType 字体":"TrueType 字型","VS Code 插件":"VS Code 外掛","WAV 音频":"WAV 音訊","WMV 视频":"WMV 影片","WOFF 字体":"WOFF 字型","WOFF2 字体":"WOFF2 字型","WebM 视频":"WebM 影片","WebP 图片":"WebP 圖片","Windows 动态库":"Windows 動態庫","Windows 可执行":"Windows 可執行","Windows 安装包":"Windows 安裝包","Word 文档":"Word 文件","ZIP 压缩包":"ZIP 壓縮包","[CodeMap] 扫描失败":"[CodeMap] 掃描失敗","bzip2 归档":"bzip2 歸檔","gzip 归档":"gzip 歸檔","macOS 镜像":"macOS 映象","tar 归档":"tar 歸檔","xz 归档":"xz 歸檔","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · 保留所有權利","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· 內建預覽：程式碼高亮 / 圖片 / 音影片 / PDF / Office 文件 / CSV / 壓縮包","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· 右鍵複製路徑 · 匯出 PNG · 一鍵忽略 node_modules 等依賴目錄","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· 地圖 / 列表雙檢視，程式碼行 · 體積 · 檔案數三種度量","—— 第 ":"—— 第 ","不支持的压缩方式":"不支援的壓縮方式","不是有效的 ZIP 容器":"不是有效的 ZIP 容器","不联网、不上传任何文件、无遥测、无常驻进程":"不聯網、不上傳任何檔案、無遙測、無常駐程序","二进制":"二進位制","二进制镜像":"二進位制映象","仅显示前 ":"僅顯示前 ","仅显示前 400 行":"僅顯示前 400 行","代码":"程式碼","代码等宽":"程式碼等寬","代码行":"程式碼行","代码预览":"程式碼預覽","体积":"體積","依赖锁定":"依賴鎖定","修改时间":"修改時間","光盘镜像":"光碟映象","全屏展开":"全屏展開","共享库":"共享庫","关":"關","关于 CodeMap":"關於 CodeMap","关闭":"關閉","关闭弹层 / 预览":"關閉彈層 / 預覽","其他":"其他","内置":"內建","准备中":"準備中","准备中…":"準備中…","列表":"列表","十六进制":"十六進位制","十六进制视图 · 显示前 ":"十六進位制檢視 · 顯示前 ","午夜紫":"午夜紫","单击":"單擊","单色":"單色","占根目录":"佔根目錄","卸载":"卸載","压缩包":"壓縮包","压缩包内含 ":"壓縮包內含 ","原始大小（字节）":"原始大小（位元組）","原生 Win32 + WebView2":"原生 Win32 + WebView2","双击":"雙擊","双击打开":"雙擊開啟","双击进入":"雙擊進入","可下钻的矩形地图":"可下鑽的矩形地圖","名称":"名稱","图标":"圖示","图片":"圖片","地图":"地圖","复制失败":"複製失敗","复制文件名":"複製檔名","复制相对路径":"複製相對路徑","复制绝对路径":"複製絕對路徑","外观":"外觀","子目录":"子目錄","字体":"字型","字体已更新":"字型已更新","字体设置":"字型設定","安装":"安裝","容器里找不到正文部件":"容器裡找不到正文部件","导入语言包…":"匯入語言包…","导出为图片":"匯出為圖片","导出失败":"匯出失敗","导出失败：图片渲染错误":"匯出失敗：圖片渲染錯誤","导出模板":"匯出範本","尚未载入项目":"尚未載入專案","展开左侧面板":"展開左側面板","展开详情面板":"展開詳情面板","左侧面板":"左側面板","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"已從文件 XML 中提取純文字，樣式、圖片與分頁不在此顯示","已包含全部目录（大项目会明显变慢）":"已包含全部目錄（大專案會明顯變慢）","已包含全部目录，重新扫描中…":"已包含全部目錄，重新掃描中…","已卸载语言包：":"已卸載語言包：","已复制文件名：":"已複製檔名：","已复制相对路径：":"已複製相對路徑：","已复制绝对路径：":"已複製絕對路徑：","已安装":"已安裝","已安装语言包：":"已安裝語言包：","已导出 PNG：":"已匯出 PNG：","已忽略依赖与产物目录，重新扫描中…":"已忽略依賴與產物目錄，重新掃描中…","已忽略依赖与构建产物目录":"已忽略依賴與構建產物目錄","已读取 ":"已讀取 ","帮助":"幫助","度量":"度量","开":"開","开始使用":"開始使用","强调色":"強調色","当前浏览器不支持解压":"當前瀏覽器不支援解壓","当前项目（点击打开文件夹）":"當前專案（點選開啟資料夾）","微软正黑":"微軟正黑","微软雅黑":"微軟雅黑","快捷键":"快捷鍵","忽略":"忽略","思源黑体":"思源黑體","总行数":"總行數","恢复默认":"恢復預設","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"開啟任意程式碼目錄，按程式碼量、體積或檔案數渲染成可下鑽的矩形地圖：面積越大體量越大，顏色代表語言。單擊看詳情，雙擊進入目錄。","打开文件夹":"開啟資料夾","扫描失败：":"掃描失敗：","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"把程式碼資料夾直接拖到這裡即可渲染成矩形地圖：面積越大體量越大，顏色代表語言。單擊看詳情，雙擊進入目錄。","把任意本地代码目录渲染成":"把任意原生代碼目錄渲染成","把文件夹变成一张可下钻的地图":"把資料夾變成一張可下鑽的地圖","拖动调整宽度":"拖動調整寬度","搜索文件…":"搜尋檔案…","收起左侧面板":"收起左側面板","收起面板":"收起面板","数字与点阵":"數字與點陣","数据库":"資料庫","文件":"檔案","文件大小 ":"檔案大小 ","文件数":"檔案數","文件超过 ":"檔案超過 ","文件较大，仅读取前 ":"檔案較大，僅讀取前 ","文档正文":"文件正文","文档里没有提取到可见文本":"文件裡沒有提取到可見文字","无印":"無印","无可读内容":"無可讀內容","无法解析该文档正文：":"無法解析該文件正文：","日志":"日誌","暖调":"暖調","最大化 / 还原":"最大化 / 還原","最大的子项":"最大的子項","最小化":"最小化","未取得项目根目录，无法拼接绝对路径":"未取得專案根目錄，無法拼接絕對路徑","未统计":"未統計","未载入项目":"未載入專案","条目头损坏":"條目頭損壞","极光":"極光","极简白":"極簡白","构成":"構成","柔和":"柔和","查看详情":"檢視詳情","根目录":"根目錄","概览":"概覽","正在扫描…":"正在掃描…","汇编":"彙編","没有匹配的内容":"沒有匹配的內容","没有读到内容":"沒有讀到內容","注释":"註釋","注释率":"註釋率","注释行":"註釋行","浏览器扩展":"瀏覽器擴充套件","混合文本":"混合文字","点「打开文件夹」载入本地目录后，即可查看文件正文。":"點「開啟資料夾」載入本地目錄後，即可檢視檔案正文。","点击切换度量":"點選切換度量","点击切换忽略规则":"點選切換忽略規則","点击切换视图":"點選切換檢視","版本 1.4.12 (x64) · 单文件 · 免安装":"版本 1.4.12 (x64) · 單檔案 · 免安裝","电子书":"電子書","界面文字":"介面文字","界面语言":"介面語言","皮肤":"皮膚","目录":"目錄","目录树":"目錄樹","目标文件":"目標檔案","知道了":"知道了","空行":"空行","等宽通用":"等寬通用","管理语言包":"管理語言包","类型":"型別","系统默认":"系統預設","纯文本":"純文字","纸感":"紙感","终端":"終端","经典":"經典","聚焦搜索框":"聚焦搜尋框","自动":"自動","自动换行":"自動換行","自定义…":"自訂…","色板":"色板","落日":"落日","行":"行","表格":"表格","被分析的代码全程留在本机，不上传任何内容":"被分析的程式碼全程留在本機，不上傳任何內容","规模":"規模","视图":"檢視","视频":"影片","详情":"詳情","详情面板":"詳情面板","语言":"語言","语言包":"語言包","语言包加载失败：":"語言包載入失敗：","语言包已导出到下载目录":"語言包已匯出到下載目錄","语言包格式不正确：需包含 name 与 dict 字段":"語言包格式不正確：需包含 name 與 dict 欄位","语言配色":"語言配色","请先切换到「地图」视图再导出":"請先切換到「地圖」檢視再匯出","请先用「打开文件夹」载入一个目录":"請先用「開啟資料夾」載入一個目錄","读取中…":"讀取中…","读取失败":"讀取失敗","调试符号":"除錯符號","赛博":"賽博","跟随皮肤":"跟隨皮膚","路径":"路徑","输入字体名，多个用逗号分隔":"輸入字型名稱，多個用逗號分隔","这个文件没有可供预览的源文本":"這個檔案沒有可供預覽的源文字","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"這個瀏覽器不支援拖拽目錄，請改用「開啟資料夾」","这个目录是空的":"這個目錄是空的","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"這個目錄裡沒有可統計的文字檔案（試試關閉忽略規則）","这类文件不按文本解析":"這類檔案不按文字解析","进入此目录":"進入此目錄","进入目录":"進入目錄","选中一个矩形或文件查看详情":"選中一個矩形或檔案檢視詳情","选择界面语言":"選擇介面語言","配置":"配置","重新载入":"重新載入","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"隨時可以在「外觀」面板裡更改語言、安裝語言包或調整字型。","隐私承诺：全程在本机运行，":"隱私承諾：全程在本機執行，","霓虹":"霓虹","静态库":"靜態庫","音频":"音訊","项目":"專案","预览":"預覽","预览此文件":"預覽此檔案","，可下载后用对应软件打开。":"，可下載後用對應軟體開啟。","，未逐行统计":"，未逐行統計","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":"：面積越大體量越大，顏色代表語言，雙擊即可逐層深入。","匹配 {n} 项":"符合 {n} 項","仅显示前 {n} 项，共 {m} 项":"僅顯示前 {n} 項，共 {m} 項","匹配项均为文件夹，请切换到列表视图查看":"符合項均為資料夾，請切換到清單檢視查看","搜索语法":"搜尋語法","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"搜尋語意對齊 Everything：空格 = 並且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的詞組；* 與 ? 為萬用字元。","空格 = 并且，| 表示或者，! 或 - 表示排除":"空格 = 並且，| 表示或者，! 或 - 表示排除","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"預設比對檔名子字串，全樹搜尋；* 與 ? 為萬用字元","操作符":"運算子","按扩展名筛选（可多值：js;ts）":"依副檔名篩選（可多值：js;ts）","路径包含该文本":"路徑包含該文字","上级文件夹包含该文本":"上層資料夾包含該文字","只匹配文件":"只符合檔案","只匹配文件夹":"只符合資料夾","按体积：>1mb、<10kb、1mb..10mb":"依體積：>1mb、<10kb、1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"依修改時間：today、>2026-01-01、2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"區分大小寫（前置開關）","正则匹配文件名":"以正規表達式比對檔名","整个文件名匹配（含通配符）":"整個檔名比對（含萬用字元）","以…开头 / 以…结尾 / 整词匹配":"以…開頭 / 以…結尾 / 整詞比對","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"支援 ext: path: size: ! | * 等語法，詳見「說明 → 搜尋語法」","来源与许可":"來源與授權","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"查詢語法參考 voidtools Everything（作者 David Carpenter）。Everything 為免費軟體，但其原始碼並未公開（其二進位檔按類 MIT 授權散布）；本實作為獨立編寫，未使用其任何程式碼，僅對齊其使用者可見的查詢語法。","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything 風格搜尋：ext: / path: / size: / dm: 等運算子，全樹即時比對","十六进制视图":"十六進位制檢視","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"語言包 id 無效（只能用字母數字底線與連字號，且不能與內建語言重名）","偏好":"偏好","预览格式":"預覽格式","按扩展名自动选择呈现方式；未能识别的格式一律用十六进制打开，不会出现打不开的文件。":"按副檔名自動選擇呈現方式；未能辨識的格式一律以十六進位開啟，不會出現打不開的檔案。","呈现方式":"呈現方式","支持的格式":"支援的格式","语法高亮 + 行号":"語法突顯 + 行號","解析为表格":"解析為表格","提取正文与表格":"擷取正文與表格","原图显示":"原圖顯示","内嵌播放器":"內嵌播放器","内置阅读器":"內建閱讀器","条目清单，可点开预览":"項目清單，可點開預覽","十六进制转储":"十六進位轉儲","读取上限":"讀取上限","文本单次最多读 8 MB，默认显示前 700 行（可在偏好中调整）。":"文字單次最多讀 8 MB，預設顯示前 700 行（可在偏好設定中調整）。","文档与压缩包容器最大 48 MB；包内单个条目超过 8 MB 不展开。":"文件與壓縮包容器最大 48 MB；包內單一項目超過 8 MB 不展開。","十六进制默认显示前 2 KB（可选 2 / 8 / 32 KB）。":"十六進位預設顯示前 2 KB（可選 2 / 8 / 32 KB）。","Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）为旧二进制格式，不支持内容解析，将以十六进制显示。":"Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）為舊二進位格式，不支援內容解析，將以十六進位顯示。","PDF 使用 WebView2 内置阅读器，若被组策略禁用则显示空白。":"PDF 使用 WebView2 內建閱讀器，若被群組原則停用則顯示空白。","未识别的任意扩展名":"未辨識的任意副檔名","关键词":"關鍵字","空格":"空格","编辑":"編輯","保存":"儲存","未保存":"未儲存","添加行":"新增列","保存失败：":"儲存失敗：","编辑需在桌面应用中通过「打开文件夹」载入目录":"需在桌面應用中透過「開啟資料夾」載入目錄後才能編輯。","文件超过读取上限，已禁用编辑":"檔案超過讀取上限，已停用編輯。","有未保存的修改，确定放弃？":"有未儲存的變更，確定放棄？","文件过大，暂不支持保存（上限 6 MB）":"檔案過大，暫不支援儲存（上限 6 MB）。","无法解析该工作表":"無法解析此工作表。","另存为":"另存為","已另存为：":"已另存為："," · 占 ":" · 佔 "," 个":" 個"," 文件":" 檔案"," 文件 · ":" 檔案 · "," 行 · ":" 行 · "," 页":" 頁"," 项":" 項","第 ":"第 ","（共 ":"（共 ","CodeMap 绘制地图失败：":"CodeMap 繪製地圖失敗：","代码 ":"程式碼 ","其他 ":"其他 ","导出失败：":"匯出失敗：","已从文档 XML 中提取内容，样式与图片不在此显示":"已從文件 XML 中擷取內容，樣式與圖片不在此顯示。","已应用":"已套用","已更新忽略清单":"已更新忽略清單","条目过大，未展开预览（":"項目過大，未展開預覽（","构成 · ":"組成 · ","每行一个目录名，与内置清单合并生效；修改后会重新扫描":"每行一個目錄名，與內建清單合併生效；修改後會重新掃描。","没有需要保存的修改":"沒有需要儲存的修改","注释 ":"註解 ","点条目可预览内容":"點項目可預覽內容","空行 ":"空行 ","绘制地图时出错：":"繪製地圖時發生錯誤：","自定义忽略目录":"自訂忽略目錄","语言包模板已复制到剪贴板":"語言包範本已複製到剪貼簿","返回清单":"返回清單","另存为（编辑时）":"另存為（編輯時）","· 内置编辑：代码 / 纯文本 / CSV / XLSX，保存走「另存为」":"· 內建編輯：程式碼 / 純文字 / CSV / XLSX，儲存走「另存為」","编码":"編碼","切换编码会丢弃未保存的修改，继续？":"切換編碼會捨棄未儲存的修改，繼續？","该编码无法解析此文件":"該編碼無法解析此檔案。","部分字符无法用该编码保存":"部分字元無法用該編碼儲存。","编码已切换，内容未变（文件可能是纯 ASCII）":"編碼已切換，內容未變（檔案可能是純 ASCII）。","自动（{enc}）":"自動（{enc}）","· 60+ 语言识别，7 套皮肤 × 7 套语言配色，强调色自定义":"· 60+ 語言識別，7 套皮膚 × 7 套語言配色，強調色自定義","条目过大，已中止解压":"項目過大，已中止解壓縮。"}},
+  "en": {"n":"English","m":{" · 用时 ":" · took "," 个文件":" files"," 个文件 · ":" files · "," 个条目":" entries"," 文件，不参与行数统计":" file, excluded from line counts"," 秒":"s"," 行":" lines"," 行，共 ":" lines shown of "," 页 ——":" —","(空文件)":"(empty file)","7-Zip 压缩包":"7-Zip archive","AAC 音频":"AAC audio","AVI 视频":"AVI video","AVIF 图片":"AVIF image","Access 数据库":"Access database","Android 包":"Android package","AutoCAD 图纸":"AutoCAD drawing","BMP 图片":"BMP image","C++ 头":"C++ header","C/C++ 头":"C/C++ header","CAD 交换文件":"CAD exchange file","CSV 表格":"CSV table","ELF 可执行":"ELF executable","EOT 字体":"EOT font","Excel 表格":"Excel spreadsheet","FLAC 音频":"FLAC audio","Flash 视频":"Flash video","GIF 图片":"GIF image","HEX 固件":"HEX firmware","IGES 模型":"IGES model","JAR 包":"JAR package","JPEG 图片":"JPEG image","Keil 工程":"Keil project","Keil 选项":"Keil options","M4A 音频":"M4A audio","M4V 视频":"M4V video","MP3 音频":"MP3 audio","MP4 视频":"MP4 video","Matroska 视频":"Matroska video","ODF 文本":"ODF text","ODF 演示":"ODF presentation","ODF 表格":"ODF spreadsheet","OGG 音频":"OGG audio","OpenType 字体":"OpenType font","PDF 文档":"PDF document","PNG 图片":"PNG image","QuickTime 视频":"QuickTime video","RAR 压缩包":"RAR archive","RTF 文档":"RTF document","Rhino 插件包":"Rhino plug-in package","Rhino 模型":"Rhino model","SQLite 数据库":"SQLite database","STEP 模型":"STEP model","STL 模型":"STL model","STM32CubeMX 配置":"STM32CubeMX config","SVG 矢量图":"SVG vector","TIFF 图片":"TIFF image","TSV 表格":"TSV table","TrueType 字体":"TrueType font","VS Code 插件":"VS Code extension","WAV 音频":"WAV audio","WMV 视频":"WMV video","WOFF 字体":"WOFF font","WOFF2 字体":"WOFF2 font","WebM 视频":"WebM video","WebP 图片":"WebP image","Windows 动态库":"Windows DLL","Windows 可执行":"Windows executable","Windows 安装包":"Windows installer","Word 文档":"Word document","ZIP 压缩包":"ZIP archive","[CodeMap] 扫描失败":"[CodeMap] scan failed","bzip2 归档":"bzip2 archive","gzip 归档":"gzip archive","macOS 镜像":"macOS image","tar 归档":"tar archive","xz 归档":"xz archive","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · All rights reserved","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· Built-in preview: highlighted code, images, audio/video, PDF, Office, CSV, archives","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· Copy paths from the context menu · export PNG · ignore node_modules and friends","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· Map and list views; lines, size and file count metrics","—— 第 ":"— page ","不支持的压缩方式":"Unsupported compression method","不是有效的 ZIP 容器":"Not a valid ZIP container","不联网、不上传任何文件、无遥测、无常驻进程":"no network, no uploads, no telemetry, no background process","二进制":"Binary","二进制镜像":"Binary image","仅显示前 ":"First ","仅显示前 400 行":"First 400 lines only","代码":"Code","代码等宽":"Code (monospace)","代码行":"Lines of code","代码预览":"Code","体积":"Size","依赖锁定":"Dependency lockfile","修改时间":"Modified","光盘镜像":"Disc image","全屏展开":"Expand","共享库":"Shared library","关":"Off","关于 CodeMap":"About CodeMap","关闭":"Close","关闭弹层 / 预览":"Close overlay / preview","其他":"Other","内置":"Built-in","准备中":"Preparing","准备中…":"Preparing…","列表":"List","十六进制":"Hex","十六进制视图 · 显示前 ":"Hex view · showing first ","午夜紫":"Midnight purple","单击":"Click","单色":"Mono","占根目录":"Of root","卸载":"Remove","压缩包":"Archive","压缩包内含 ":"Archive contains ","原始大小（字节）":"Raw size (bytes)","原生 Win32 + WebView2":"Native Win32 + WebView2","双击":"Double-click","双击打开":"Double-click to open","双击进入":"Double-click to enter","可下钻的矩形地图":"drillable rectangle map","名称":"Name","图标":"Icon","图片":"Image","地图":"Map","复制失败":"Copy failed","复制文件名":"Copy file name","复制相对路径":"Copy relative path","复制绝对路径":"Copy absolute path","外观":"Appearance","子目录":"Subfolders","字体":"Fonts","字体已更新":"Fonts updated","字体设置":"Font settings","安装":"Install","容器里找不到正文部件":"No body part found in the container","导入语言包…":"Import language pack…","导出为图片":"Export as image","导出失败":"Export failed","导出失败：图片渲染错误":"Export failed: image render error","导出模板":"Export template","尚未载入项目":"No project loaded","展开左侧面板":"Expand left panel","展开详情面板":"Expand details panel","左侧面板":"Left panel","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"Plain text extracted from the document XML; styling, images and pagination are not shown","已包含全部目录（大项目会明显变慢）":"All folders included (large projects will be slower)","已包含全部目录，重新扫描中…":"Including all folders, rescanning…","已卸载语言包：":"Removed language pack: ","已复制文件名：":"Copied file name: ","已复制相对路径：":"Copied relative path: ","已复制绝对路径：":"Copied absolute path: ","已安装":"Installed","已安装语言包：":"Installed language pack: ","已导出 PNG：":"Exported PNG: ","已忽略依赖与产物目录，重新扫描中…":"Ignoring dependency and build folders, rescanning…","已忽略依赖与构建产物目录":"Dependency and build folders ignored","已读取 ":"Read ","帮助":"Help","度量":"Metric","开":"On","开始使用":"Get started","强调色":"Accent colour","当前浏览器不支持解压":"Decompression is not supported here","当前项目（点击打开文件夹）":"Current project (click to open a folder)","微软正黑":"Microsoft JhengHei","微软雅黑":"Microsoft YaHei","快捷键":"Shortcuts","忽略":"Ignore","思源黑体":"Source Han Sans","总行数":"Total lines","恢复默认":"Restore defaults","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"Open any code folder and it becomes a drillable rectangle map sized by lines, size or file count: bigger area means bigger weight, colour means language. Click for details, double-click to enter a folder.","打开文件夹":"Open folder","扫描失败：":"Scan failed: ","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"Drop a code folder here to render it as a rectangle map: bigger area means bigger weight, colour means language. Click for details, double-click to enter a folder.","把任意本地代码目录渲染成":"Renders any local code folder as a ","把文件夹变成一张可下钻的地图":"Turn a folder into a drillable map","拖动调整宽度":"Drag to resize","搜索文件…":"Search files…","收起左侧面板":"Collapse left panel","收起面板":"Collapse panel","数字与点阵":"Numerals & dot matrix","数据库":"Database","文件":"Files","文件大小 ":"File size ","文件数":"Files","文件超过 ":"File over ","文件较大，仅读取前 ":"Large file — read the first ","文档正文":"Document text","文档里没有提取到可见文本":"No visible text found in the document","无印":"Nothing","无可读内容":"Nothing to show","无法解析该文档正文：":"Could not parse the document body: ","日志":"Log","暖调":"Warm","最大化 / 还原":"Maximize / restore","最大的子项":"Largest children","最小化":"Minimize","未取得项目根目录，无法拼接绝对路径":"Project root unknown — absolute path unavailable","未统计":"Not counted","未载入项目":"No project","条目头损坏":"Corrupt entry header","极光":"Aurora","极简白":"Plain white","构成":"Composition","柔和":"Soft","查看详情":"See details","根目录":"Root","概览":"Overview","正在扫描…":"Scanning…","汇编":"Assembly","没有匹配的内容":"No matches","没有读到内容":"Nothing was read","注释":"Comment","注释率":"Comment ratio","注释行":"Comment lines","浏览器扩展":"Browser extension","混合文本":"Mixed text","点「打开文件夹」载入本地目录后，即可查看文件正文。":"Open a folder to view file contents.","点击切换度量":"Switch metric","点击切换忽略规则":"Toggle ignore rules","点击切换视图":"Switch view","版本 1.4.12 (x64) · 单文件 · 免安装":"Version 1.4.12 (x64) · single file · no install","电子书":"E-book","界面文字":"Interface text","界面语言":"Interface language","皮肤":"Skin","目录":"Folder","目录树":"Tree","目标文件":"Object file","知道了":"Got it","空行":"Blank","等宽通用":"Generic monospace","管理语言包":"Manage language packs","类型":"Type","系统默认":"System default","纯文本":"Plain text","纸感":"Paper","终端":"Terminal","经典":"Classic","聚焦搜索框":"Focus search","自动":"Auto","自动换行":"Wrap lines","自定义…":"Custom…","色板":"Palette","落日":"Dusk","行":"lines","表格":"Table","被分析的代码全程留在本机，不上传任何内容":"Everything stays on this machine — nothing is uploaded","规模":"Scale","视图":"View","视频":"Video","详情":"Details","详情面板":"Details panel","语言":"Language","语言包":"Language packs","语言包加载失败：":"Failed to load language pack: ","语言包已导出到下载目录":"Language pack exported to your downloads folder","语言包格式不正确：需包含 name 与 dict 字段":"Invalid language pack: \"name\" and \"dict\" fields are required","语言配色":"Language palette","请先切换到「地图」视图再导出":"Switch to the Map view before exporting","请先用「打开文件夹」载入一个目录":"Load a folder with “Open folder” first","读取中…":"Loading…","读取失败":"Read failed","调试符号":"Debug symbols","赛博":"Cyber","跟随皮肤":"Follow skin","路径":"Path","输入字体名，多个用逗号分隔":"Font names, comma separated","这个文件没有可供预览的源文本":"This file has no previewable source text","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"This browser cannot drop folders — use “Open folder” instead","这个目录是空的":"This folder is empty","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"No countable text files in this folder (try turning ignore rules off)","这类文件不按文本解析":"This type is not parsed as text","进入此目录":"Enter this folder","进入目录":"Enter folder","选中一个矩形或文件查看详情":"Select a rectangle or file for details","选择界面语言":"Choose your language","配置":"Config","重新载入":"Reload","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"You can change the language, install language packs or adjust fonts any time from the Appearance panel.","隐私承诺：全程在本机运行，":"Privacy: everything runs locally — ","霓虹":"Neon","静态库":"Static library","音频":"Audio","项目":"Project","预览":"Preview","预览此文件":"Preview this file","，可下载后用对应软件打开。":" — download it and open with the right app.","，未逐行统计":", not counted line by line","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":": bigger area means bigger weight, colour means language, double-click to go deeper.","匹配 {n} 项":"Matches: {n}","仅显示前 {n} 项，共 {m} 项":"Showing first {n} of {m}","匹配项均为文件夹，请切换到列表视图查看":"All matches are folders — switch to the list view","搜索语法":"Search syntax","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"Search semantics follow Everything: space = AND, | = OR, ! or - = NOT, \"\" groups a phrase; * and ? are wildcards.","空格 = 并且，| 表示或者，! 或 - 表示排除":"space = AND, | = OR, ! or - = NOT","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"Match filename substring across the whole tree; * and ? are wildcards","操作符":"Operator","按扩展名筛选（可多值：js;ts）":"Filter by extension (multiple: js;ts)","路径包含该文本":"Path contains text","上级文件夹包含该文本":"Parent folder contains text","只匹配文件":"Files only","只匹配文件夹":"Folders only","按体积：>1mb、<10kb、1mb..10mb":"By size: >1mb, <10kb, 1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"By date modified: today, >2026-01-01, 2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"Case-sensitive (prefix switch)","正则匹配文件名":"Match filename by regex","整个文件名匹配（含通配符）":"Whole filename match (wildcards allowed)","以…开头 / 以…结尾 / 整词匹配":"Starts with / ends with / whole word","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"Supports ext:, path:, size:, !, |, * … see Help → Search syntax","来源与许可":"Source & licence","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"Query syntax follows voidtools Everything (by David Carpenter). Everything is freeware, but its source code is not published (its binaries ship under an MIT-style licence). This implementation is written independently and uses none of its code — only the user-visible query syntax is matched.","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything-style search: ext:, path:, size:, dm: operators, instant whole-tree matching","十六进制视图":"Hex view","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"Invalid language-pack id (letters, digits, \"_\" and \"-\" only; must not clash with a built-in language)","偏好":"Preferences","预览格式":"Preview formats","按扩展名自动选择呈现方式；未能识别的格式一律用十六进制打开，不会出现打不开的文件。":"The view is chosen automatically by file extension. Anything unrecognised opens as a hex dump, so no file is ever unopenable.","呈现方式":"Rendering","支持的格式":"Supported formats","语法高亮 + 行号":"Syntax highlighting + line numbers","解析为表格":"Parsed into a table","提取正文与表格":"Text and tables extracted","原图显示":"Shown as image","内嵌播放器":"Inline player","内置阅读器":"Built-in viewer","条目清单，可点开预览":"Entry list, click to preview","十六进制转储":"Hex dump","读取上限":"Read limits","文本单次最多读 8 MB，默认显示前 700 行（可在偏好中调整）。":"Text is read up to 8 MB at a time and shows the first 700 lines by default (adjustable in Preferences).","文档与压缩包容器最大 48 MB；包内单个条目超过 8 MB 不展开。":"Documents and archives are capped at 48 MB; a single entry larger than 8 MB is not expanded.","十六进制默认显示前 2 KB（可选 2 / 8 / 32 KB）。":"Hex view shows the first 2 KB by default (2 / 8 / 32 KB selectable).","Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）为旧二进制格式，不支持内容解析，将以十六进制显示。":"Legacy binary formats — Word 97–2003 (.doc), PowerPoint 97–2003 (.ppt), Excel 97–2003 (.xls) — are not parsed and open as hex.","PDF 使用 WebView2 内置阅读器，若被组策略禁用则显示空白。":"PDF uses the WebView2 built-in viewer; it shows blank if disabled by group policy.","未识别的任意扩展名":"any unrecognised extension","关键词":"Keyword","空格":"space","编辑":"Edit","保存":"Save","未保存":"Unsaved","添加行":"Add row","保存失败：":"Save failed: ","编辑需在桌面应用中通过「打开文件夹」载入目录":"Editing requires loading a folder via \"Open folder\" in the desktop app.","文件超过读取上限，已禁用编辑":"File exceeds the read limit; editing is disabled.","有未保存的修改，确定放弃？":"You have unsaved changes. Discard them?","文件过大，暂不支持保存（上限 6 MB）":"File is too large to save (6 MB limit).","无法解析该工作表":"Cannot parse this worksheet.","另存为":"Save as","已另存为：":"Saved as: "," · 占 ":" · "," 个":""," 文件":" files"," 文件 · ":" files · "," 行 · ":" lines · "," 页":""," 项":" items","第 ":"Page ","（共 ":"(","CodeMap 绘制地图失败：":"CodeMap failed to draw the map: ","代码 ":"Code ","其他 ":"Other ","导出失败：":"Export failed: ","已从文档 XML 中提取内容，样式与图片不在此显示":"Content extracted from the document XML; styles and images are not shown here.","已应用":"Applied","已更新忽略清单":"Ignore list updated","条目过大，未展开预览（":"Entry too large to preview (","构成 · ":"Breakdown · ","每行一个目录名，与内置清单合并生效；修改后会重新扫描":"One folder name per line, merged with the built-in list; changes trigger a rescan.","没有需要保存的修改":"Nothing to save","注释 ":"Comments ","点条目可预览内容":"Click an entry to preview","空行 ":"Blank ","绘制地图时出错：":"Error while drawing the map: ","自定义忽略目录":"Custom ignored folders","语言包模板已复制到剪贴板":"Language pack template copied to the clipboard","返回清单":"Back to list","另存为（编辑时）":"Save as (while editing)","· 内置编辑：代码 / 纯文本 / CSV / XLSX，保存走「另存为」":"· Built-in editing: code / plain text / CSV / XLSX, saved via \"Save as\"","编码":"Encoding","切换编码会丢弃未保存的修改，继续？":"Switching the encoding discards unsaved changes. Continue?","该编码无法解析此文件":"This file cannot be decoded with that encoding.","部分字符无法用该编码保存":"Some characters cannot be saved in that encoding.","编码已切换，内容未变（文件可能是纯 ASCII）":"Encoding changed, but the content is identical (the file may be pure ASCII).","自动（{enc}）":"Auto ({enc})","· 60+ 语言识别，7 套皮肤 × 7 套语言配色，强调色自定义":"· 60+ languages; 7 skins × 7 language palettes; custom accent colour","条目过大，已中止解压":"Entry is too large; decompression aborted."}},
+  "ja": {"n":"日本語","m":{" · 用时 ":" · 所要 "," 个文件":" 件のファイルを読み込みました"," 个文件 · ":" ファイル · "," 个条目":" 件のエントリ"," 文件，不参与行数统计":" ファイルのため行数に含まれません"," 秒":" 秒"," 行":" 行のみ読み込み"," 行，共 ":" 行を表示（全 "," 页 ——":" ページ —","(空文件)":"(空のファイル)","7-Zip 压缩包":"7-Zip アーカイブ","AAC 音频":"AAC 音声","AVI 视频":"AVI 動画","AVIF 图片":"AVIF 画像","Access 数据库":"Access データベース","Android 包":"Android パッケージ","AutoCAD 图纸":"AutoCAD 図面","BMP 图片":"BMP 画像","C++ 头":"C++ ヘッダ","C/C++ 头":"C/C++ ヘッダ","CAD 交换文件":"CAD 交換ファイル","CSV 表格":"CSV 表","ELF 可执行":"ELF 実行ファイル","EOT 字体":"EOT フォント","Excel 表格":"Excel 表計算","FLAC 音频":"FLAC 音声","Flash 视频":"Flash 動画","GIF 图片":"GIF 画像","HEX 固件":"HEX ファームウェア","IGES 模型":"IGES モデル","JAR 包":"JAR パッケージ","JPEG 图片":"JPEG 画像","Keil 工程":"Keil プロジェクト","Keil 选项":"Keil オプション","M4A 音频":"M4A 音声","M4V 视频":"M4V 動画","MP3 音频":"MP3 音声","MP4 视频":"MP4 動画","Matroska 视频":"Matroska 動画","ODF 文本":"ODF テキスト","ODF 演示":"ODF プレゼンテーション","ODF 表格":"ODF 表計算","OGG 音频":"OGG 音声","OpenType 字体":"OpenType フォント","PDF 文档":"PDF 文書","PNG 图片":"PNG 画像","QuickTime 视频":"QuickTime 動画","RAR 压缩包":"RAR アーカイブ","RTF 文档":"RTF 文書","Rhino 插件包":"Rhino プラグインパッケージ","Rhino 模型":"Rhino モデル","SQLite 数据库":"SQLite データベース","STEP 模型":"STEP モデル","STL 模型":"STL モデル","STM32CubeMX 配置":"STM32CubeMX 設定","SVG 矢量图":"SVG ベクター画像","TIFF 图片":"TIFF 画像","TSV 表格":"TSV 表","TrueType 字体":"TrueType フォント","VS Code 插件":"VS Code 拡張機能","WAV 音频":"WAV 音声","WMV 视频":"WMV 動画","WOFF 字体":"WOFF フォント","WOFF2 字体":"WOFF2 フォント","WebM 视频":"WebM 動画","WebP 图片":"WebP 画像","Windows 动态库":"Windows DLL","Windows 可执行":"Windows 実行ファイル","Windows 安装包":"Windows インストーラー","Word 文档":"Word 文書","ZIP 压缩包":"ZIP アーカイブ","[CodeMap] 扫描失败":"[CodeMap] スキャン失敗","bzip2 归档":"bzip2 アーカイブ","gzip 归档":"gzip アーカイブ","macOS 镜像":"macOS イメージ","tar 归档":"tar アーカイブ","xz 归档":"xz アーカイブ","© 2026 Meteor · 保留所有权利":"© 2026 Meteor · All rights reserved","· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包":"· 内蔵プレビュー：コード強調表示 / 画像 / 音声・動画 / PDF / Office / CSV / アーカイブ","· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录":"· 右クリックでパスをコピー · PNG 書き出し · node_modules などを一括除外","· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量":"· マップ / リストの 2 表示、行数・サイズ・ファイル数の 3 指標","—— 第 ":"— ","不支持的压缩方式":"未対応の圧縮方式です","不是有效的 ZIP 容器":"有効な ZIP コンテナではありません","不联网、不上传任何文件、无遥测、无常驻进程":"通信・アップロード・テレメトリ・常駐プロセスはありません","二进制":"バイナリ","二进制镜像":"バイナリイメージ","仅显示前 ":"先頭 ","仅显示前 400 行":"先頭 400 行のみ表示","代码":"コード","代码等宽":"コード（等幅）","代码行":"コード行","代码预览":"コード","体积":"サイズ","依赖锁定":"依存ロックファイル","修改时间":"更新日時","光盘镜像":"ディスクイメージ","全屏展开":"全画面","共享库":"共有ライブラリ","关":"オフ","关于 CodeMap":"CodeMap について","关闭":"閉じる","关闭弹层 / 预览":"オーバーレイ / プレビューを閉じる","其他":"その他","内置":"内蔵","准备中":"準備中","准备中…":"準備中…","列表":"リスト","十六进制":"16 進数","十六进制视图 · 显示前 ":"16 進ビュー · 先頭 ","午夜紫":"ミッドナイトパープル","单击":"クリック","单色":"モノ","占根目录":"ルート比","卸载":"削除","压缩包":"アーカイブ","压缩包内含 ":"アーカイブ内に ","原始大小（字节）":"元のサイズ（バイト）","原生 Win32 + WebView2":"ネイティブ Win32 + WebView2","双击":"ダブルクリック","双击打开":"ダブルクリックで開く","双击进入":"ダブルクリックでフォルダに入る","可下钻的矩形地图":"掘り下げ可能な矩形マップ","名称":"名前","图标":"アイコン","图片":"画像","地图":"マップ","复制失败":"コピー失敗","复制文件名":"ファイル名をコピー","复制相对路径":"相対パスをコピー","复制绝对路径":"絶対パスをコピー","外观":"外観","子目录":"サブフォルダ","字体":"フォント","字体已更新":"フォントを更新しました","字体设置":"フォント設定","安装":"インストール","容器里找不到正文部件":"コンテナ内に本文パートが見つかりません","导入语言包…":"言語パックを読み込む…","导出为图片":"画像として書き出し","导出失败":"書き出し失敗","导出失败：图片渲染错误":"書き出し失敗：画像のレンダリングエラー","导出模板":"テンプレートを書き出す","尚未载入项目":"プロジェクトが読み込まれていません","展开左侧面板":"左パネルを展開","展开详情面板":"詳細パネルを展開","左侧面板":"左パネル","已从文档 XML 中提取纯文本，样式、图片与分页不在此显示":"文書 XML からプレーンテキストを抽出したものです。書式・画像・ページ割りは表示されません","已包含全部目录（大项目会明显变慢）":"すべてのフォルダを含めます（大規模プロジェクトでは遅くなります）","已包含全部目录，重新扫描中…":"すべてのフォルダを含めて再スキャン中…","已卸载语言包：":"言語パックを削除しました：","已复制文件名：":"ファイル名をコピーしました：","已复制相对路径：":"相対パスをコピーしました：","已复制绝对路径：":"絶対パスをコピーしました：","已安装":"インストール済み","已安装语言包：":"言語パックをインストールしました：","已导出 PNG：":"PNG を書き出しました：","已忽略依赖与产物目录，重新扫描中…":"依存関係とビルド成果物を除外して再スキャン中…","已忽略依赖与构建产物目录":"依存関係とビルド成果物のフォルダを除外しました","已读取 ":"","帮助":"ヘルプ","度量":"指標","开":"オン","开始使用":"はじめる","强调色":"アクセントカラー","当前浏览器不支持解压":"この環境では展開に対応していません","当前项目（点击打开文件夹）":"現在のプロジェクト（クリックでフォルダを開く）","微软正黑":"Microsoft JhengHei","微软雅黑":"Microsoft YaHei","快捷键":"ショートカット","忽略":"除外","思源黑体":"Source Han Sans","总行数":"総行数","恢复默认":"既定に戻す","打开任意代码目录，按代码量、体积或文件数渲染成可下钻的矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"コードフォルダを開くと、行数・サイズ・ファイル数で大きさが決まる掘り下げ可能な矩形マップになります。面積が大きいほど比重が大きく、色は言語を表します。クリックで詳細、ダブルクリックでフォルダに入ります。","打开文件夹":"フォルダを開く","扫描失败：":"スキャン失敗：","把代码文件夹直接拖到这里即可渲染成矩形地图：面积越大体量越大，颜色代表语言。单击看详情，双击进入目录。":"コードフォルダをここにドロップすると矩形マップになります。面積が大きいほど比重が大きく、色は言語を表します。クリックで詳細、ダブルクリックでフォルダに入ります。","把任意本地代码目录渲染成":"ローカルのコードフォルダを","把文件夹变成一张可下钻的地图":"フォルダを掘り下げ可能なマップに","拖动调整宽度":"ドラッグで幅を調整","搜索文件…":"ファイルを検索…","收起左侧面板":"左パネルを畳む","收起面板":"パネルを畳む","数字与点阵":"数字・ドット","数据库":"データベース","文件":"ファイル","文件大小 ":"ファイルサイズ ","文件数":"ファイル数","文件超过 ":"ファイルサイズが ","文件较大，仅读取前 ":"ファイルが大きいため先頭 ","文档正文":"文書本文","文档里没有提取到可见文本":"文書から表示可能なテキストを抽出できませんでした","无印":"無印","无可读内容":"表示できる内容がありません","无法解析该文档正文：":"文書本文を解析できませんでした：","日志":"ログ","暖调":"ウォーム","最大化 / 还原":"最大化 / 元に戻す","最大的子项":"最大の子項目","最小化":"最小化","未取得项目根目录，无法拼接绝对路径":"プロジェクトのルートが不明なため絶対パスを生成できません","未统计":"未集計","未载入项目":"プロジェクト未読み込み","条目头损坏":"エントリヘッダが破損しています","极光":"オーロラ","极简白":"シンプルホワイト","构成":"構成","柔和":"ソフト","查看详情":"詳細を表示","根目录":"ルート","概览":"概要","正在扫描…":"スキャン中…","汇编":"アセンブリ","没有匹配的内容":"一致する内容がありません","没有读到内容":"内容を読み込めませんでした","注释":"コメント","注释率":"コメント率","注释行":"コメント行","浏览器扩展":"ブラウザ拡張","混合文本":"混在テキスト","点「打开文件夹」载入本地目录后，即可查看文件正文。":"「フォルダを開く」でローカルフォルダを読み込むと本文を表示できます。","点击切换度量":"指標を切り替え","点击切换忽略规则":"除外ルールを切り替え","点击切换视图":"表示を切り替え","版本 1.4.12 (x64) · 单文件 · 免安装":"バージョン 1.4.12 (x64) · 単一ファイル · インストール不要","电子书":"電子書籍","界面文字":"UI テキスト","界面语言":"表示言語","皮肤":"スキン","目录":"フォルダ","目录树":"ツリー","目标文件":"オブジェクトファイル","知道了":"了解","空行":"空行","等宽通用":"汎用等幅","管理语言包":"言語パックを管理","类型":"種類","系统默认":"システム既定","纯文本":"プレーンテキスト","纸感":"ペーパー","终端":"ターミナル","经典":"クラシック","聚焦搜索框":"検索ボックスに移動","自动":"自動","自动换行":"折り返し","自定义…":"カスタム…","色板":"パレット","落日":"トワイライト","行":"行","表格":"表","被分析的代码全程留在本机，不上传任何内容":"解析対象はすべてこの PC 内に留まり、何もアップロードされません","规模":"規模","视图":"表示","视频":"動画","详情":"詳細","详情面板":"詳細パネル","语言":"言語","语言包":"言語パック","语言包加载失败：":"言語パックの読み込みに失敗：","语言包已导出到下载目录":"言語パックをダウンロードフォルダに書き出しました","语言包格式不正确：需包含 name 与 dict 字段":"言語パックの形式が正しくありません：「name」と「dict」が必要です","语言配色":"言語配色","请先切换到「地图」视图再导出":"書き出す前に「マップ」表示に切り替えてください","请先用「打开文件夹」载入一个目录":"先に「フォルダを開く」でフォルダを読み込んでください","读取中…":"読み込み中…","读取失败":"読み込み失敗","调试符号":"デバッグシンボル","赛博":"サイバー","跟随皮肤":"スキンに追従","路径":"パス","输入字体名，多个用逗号分隔":"フォント名（カンマ区切りで複数可）","这个文件没有可供预览的源文本":"このファイルにはプレビューできるソーステキストがありません","这个浏览器不支持拖拽目录，请改用「打开文件夹」":"このブラウザはフォルダのドロップに対応していません。「フォルダを開く」をお使いください","这个目录是空的":"このフォルダは空です","这个目录里没有可统计的文本文件（试试关闭忽略规则）":"このフォルダには集計できるテキストファイルがありません（除外ルールをオフにしてみてください）","这类文件不按文本解析":"この形式はテキストとして解析されません","进入此目录":"このフォルダに入る","进入目录":"フォルダに入る","选中一个矩形或文件查看详情":"矩形またはファイルを選ぶと詳細を表示します","选择界面语言":"表示言語を選択","配置":"設定","重新载入":"再読み込み","随时可以在「外观」面板里更改语言、安装语言包或调整字体。":"言語の変更・言語パックの導入・フォントの調整は、いつでも「外観」パネルから行えます。","隐私承诺：全程在本机运行，":"プライバシー：すべてローカルで動作し、","霓虹":"ネオン","静态库":"静的ライブラリ","音频":"音声","项目":"プロジェクト","预览":"プレビュー","预览此文件":"このファイルをプレビュー","，可下载后用对应软件打开。":" — ダウンロードして対応アプリで開いてください。","，未逐行统计":" を超えるため行単位では集計していません","：面积越大体量越大，颜色代表语言，双击即可逐层深入。":" として描画します。面積が大きいほど比重が大きく、色は言語を表します。ダブルクリックで階層を掘り下げられます。","匹配 {n} 项":"一致 {n} 件","仅显示前 {n} 项，共 {m} 项":"先頭 {n} 件を表示（全 {m} 件）","匹配项均为文件夹，请切换到列表视图查看":"一致した項目はすべてフォルダです。リスト表示に切り替えてください","搜索语法":"検索構文","搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，\"\" 包住含空格的短语；* 与 ? 为通配符。":"検索の意味論は Everything に準拠：スペース = AND、| = OR、! または - = NOT、\"\" でフレーズを囲む、* と ? はワイルドカード。","空格 = 并且，| 表示或者，! 或 - 表示排除":"スペース = AND、| = OR、! または - = NOT","默认匹配文件名子串，全树搜索；* 与 ? 为通配符":"ファイル名の部分一致でツリー全体を検索。* と ? はワイルドカード","操作符":"演算子","按扩展名筛选（可多值：js;ts）":"拡張子で絞り込み（複数可：js;ts）","路径包含该文本":"パスに含まれる","上级文件夹包含该文本":"親フォルダに含まれる","只匹配文件":"ファイルのみ","只匹配文件夹":"フォルダのみ","按体积：>1mb、<10kb、1mb..10mb":"サイズ指定：>1mb、<10kb、1mb..10mb","按修改时间：today、>2026-01-01、2026-01-01..2026-06-30":"更新日時指定：today、>2026-01-01、2026-01-01..2026-06-30","区分大小写（作为前缀开关）":"大文字と小文字を区別（接頭辞スイッチ）","正则匹配文件名":"正規表現でファイル名を照合","整个文件名匹配（含通配符）":"ファイル名全体で照合（ワイルドカード可）","以…开头 / 以…结尾 / 整词匹配":"〜で始まる / 〜で終わる / 単語単位","支持 ext: path: size: ! | * 等语法，详见「帮助 → 搜索语法」":"ext: path: size: ! | * などの構文に対応。詳細は「ヘルプ → 検索構文」","来源与许可":"出典とライセンス","查询语法参考 voidtools Everything（作者 David Carpenter）。Everything 为免费软件，但其源代码并未公开（其二进制按类 MIT 许可分发）；本实现为独立编写，未使用其任何代码，仅对齐其用户可见的查询语法。":"検索構文は voidtools Everything（作者 David Carpenter）に準拠。Everything はフリーソフトですがソースコードは公開されていません（バイナリは MIT 相当のライセンス）。本実装は独自に作成したもので、そのコードは一切使用しておらず、ユーザーから見える検索構文のみを合わせています。","· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配":"· Everything 風の検索：ext: / path: / size: / dm: などの演算子でツリー全体を即時照合","十六进制视图":"16進数ビュー","语言包 id 无效（只能用字母数字下划线与连字符，且不能与内置语言重名）":"言語パック id が不正です（英数字・アンダースコア・ハイフンのみ、組み込み言語と重複不可）","偏好":"環境設定","预览格式":"プレビュー形式","按扩展名自动选择呈现方式；未能识别的格式一律用十六进制打开，不会出现打不开的文件。":"拡張子に応じて表示方法を自動で切り替えます。判別できない形式は 16 進表示になるため、開けないファイルはありません。","呈现方式":"表示方法","支持的格式":"対応形式","语法高亮 + 行号":"シンタックスハイライト + 行番号","解析为表格":"表として表示","提取正文与表格":"本文と表を抽出","原图显示":"画像として表示","内嵌播放器":"内蔵プレーヤー","内置阅读器":"内蔵ビューア","条目清单，可点开预览":"一覧表示、クリックでプレビュー","十六进制转储":"16 進ダンプ","读取上限":"読み込み上限","文本单次最多读 8 MB，默认显示前 700 行（可在偏好中调整）。":"テキストは一度に最大 8 MB まで読み込み、既定では先頭 700 行を表示します（環境設定で変更可能）。","文档与压缩包容器最大 48 MB；包内单个条目超过 8 MB 不展开。":"文書と圧縮ファイルのコンテナは最大 48 MB、アーカイブ内の 1 項目が 8 MB を超える場合は展開しません。","十六进制默认显示前 2 KB（可选 2 / 8 / 32 KB）。":"16 進表示は既定で先頭 2 KB（2 / 8 / 32 KB から選択可能）。","Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）为旧二进制格式，不支持内容解析，将以十六进制显示。":"Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）は旧バイナリ形式のため内容を解析できず、16 進表示になります。","PDF 使用 WebView2 内置阅读器，若被组策略禁用则显示空白。":"PDF は WebView2 内蔵ビューアを使用します。グループ ポリシーで無効化されている場合は空白になります。","未识别的任意扩展名":"判別できない任意の拡張子","关键词":"キーワード","空格":"スペース","编辑":"編集","保存":"保存","未保存":"未保存","添加行":"行を追加","保存失败：":"保存に失敗：","编辑需在桌面应用中通过「打开文件夹」载入目录":"デスクトップアプリで「フォルダーを開く」から読み込んだ場合のみ編集できます。","文件超过读取上限，已禁用编辑":"ファイルが読み込み上限を超えているため編集できません。","有未保存的修改，确定放弃？":"未保存の変更があります。破棄しますか？","文件过大，暂不支持保存（上限 6 MB）":"ファイルが大きすぎて保存できません（上限 6 MB）。","无法解析该工作表":"このワークシートを解析できません。","另存为":"名前を付けて保存","已另存为：":"別名で保存しました："," · 占 ":" · 占 "," 个":" 個"," 文件":" ファイル"," 文件 · ":" ファイル · "," 行 · ":" 行 · "," 页":" ページ"," 项":" 項目","第 ":"","（共 ":"（全 ","CodeMap 绘制地图失败：":"CodeMap のマップ描画に失敗：","代码 ":"コード ","其他 ":"その他 ","导出失败：":"エクスポートに失敗：","已从文档 XML 中提取内容，样式与图片不在此显示":"文書 XML から内容を抽出しました。スタイルと画像はここには表示されません。","已应用":"適用しました","已更新忽略清单":"除外リストを更新しました","条目过大，未展开预览（":"項目が大きすぎてプレビューしません（","构成 · ":"構成 · ","每行一个目录名，与内置清单合并生效；修改后会重新扫描":"1 行に 1 フォルダー名。組み込みリストと統合され、変更後は再スキャンします。","没有需要保存的修改":"保存する変更はありません","注释 ":"コメント ","点条目可预览内容":"項目をクリックするとプレビューできます","空行 ":"空行 ","绘制地图时出错：":"マップ描画中のエラー：","自定义忽略目录":"カスタム除外フォルダー","语言包模板已复制到剪贴板":"言語パックのテンプレートをクリップボードにコピーしました","返回清单":"一覧に戻る","另存为（编辑时）":"名前を付けて保存（編集中）","· 内置编辑：代码 / 纯文本 / CSV / XLSX，保存走「另存为」":"· 内蔵エディター：コード / テキスト / CSV / XLSX（「名前を付けて保存」で保存）","编码":"エンコード","切换编码会丢弃未保存的修改，继续？":"エンコードを切り替えると未保存の変更は破棄されます。続行しますか？","该编码无法解析此文件":"このエンコードではファイルを解析できません。","部分字符无法用该编码保存":"一部の文字はそのエンコードで保存できません。","编码已切换，内容未变（文件可能是纯 ASCII）":"エンコードを変更しましたが内容は同じです（純粋な ASCII の可能性）。","自动（{enc}）":"自動（{enc}）","· 60+ 语言识别，7 套皮肤 × 7 套语言配色，强调色自定义":"· 60 以上の言語を判定、7 スキン × 7 言語配色、アクセントカラーは自由に変更可","条目过大，已中止解压":"項目が大きすぎるため解凍を中止しました。"}}
 };
 
 /* ---------- 语言包（可安装插件） ---------- */
@@ -842,6 +891,36 @@ const LANGS = {
   ipynb:{n:'Notebook',c:'#DA5B0B'}, hbs:{n:'Handlebars',c:'#F7931E'}, pug:{n:'Pug',c:'#A86454'},
   graphql:{n:'GraphQL',c:'#E10098'}, proto:{n:'Protobuf',c:'#4285F4'}, thrift:{n:'Thrift',c:'#D12127'}
 };
+/* 扩展名别名：只决定「按什么语法着色 / 归入哪种语言」，不新增语言条目。
+   这些扩展名此前不在识别表里，会被当成二进制显示十六进制。 */
+const EXT_ALIAS = {
+  /* 工程 / 构建（XML 系） */
+  csproj:'xml', vbproj:'xml', vcxproj:'xml', fsproj:'xml', nuspec:'xml',
+  props:'xml', targets:'xml', filters:'xml', xaml:'xml', axaml:'xml', plist:'xml',
+  /* 解决方案 / 构建脚本 */
+  sln:'txt', slnx:'txt', bzl:'py', bazel:'py',
+  /* 模板 / 标记 */
+  razor:'html', cshtml:'html', vbhtml:'html', mdx:'html', astro:'html',
+  /* JSON 系 */
+  jsonc:'json', hjson:'json', ndjson:'json', jsonl:'json', avsc:'json',
+  babelrc:'json', eslintrc:'json', prettierrc:'json', stylelintrc:'json',
+  /* INI / 配置 */
+  npmrc:'ini', yarnrc:'ini', gitmodules:'ini', service:'ini', desktop:'ini', inf:'ini', url:'ini',
+  nvmrc:'txt', gitattributes:'txt', htaccess:'txt',
+  /* 脚本 */
+  psm1:'ps1', psd1:'ps1', kts:'kt',
+  /* 图查询 */
+  gql:'graphql', graphqls:'graphql', proto3:'proto',
+  /* 差异 / 文档 / 其他语言源码：按纯文本高亮 */
+  diff:'txt', patch:'txt', http:'txt', rest:'txt',
+  rst:'txt', adoc:'txt', org:'txt', tex:'txt', bib:'txt', sty:'txt', cls:'txt',
+  vb:'txt', fs:'txt', fsx:'txt', jl:'txt', pl:'txt', pm:'txt', tcl:'txt',
+  awk:'txt', sed:'txt', vbs:'txt', ahk:'txt', nsi:'txt', iss:'txt',
+  nim:'txt', zig:'txt', d:'txt', rkt:'txt', hs:'txt', lhs:'txt', ml:'txt', mli:'txt',
+  ex:'txt', exs:'txt', erl:'txt', hrl:'txt', clj:'txt', cljs:'txt', cljc:'txt', edn:'txt'
+};
+function canonExt(e){ return EXT_ALIAS[e] || e; }
+
 const OTHER_LANG = { n:tr('其他'), c:'#9AA0A6' };
 
 /* ---------- 扩展名收敛到 20 个色槽：0~15 语言，16~19 图片/文档/压缩包/媒体 ---------- */
@@ -910,10 +989,10 @@ const EXT_NAME = {
   step:tr('STEP 模型'), igs:tr('IGES 模型'),
   csv:tr('CSV 表格'), tsv:tr('TSV 表格'), log:tr('日志'), lock:tr('依赖锁定')
 };
-function langSlot(key){ return LANG_SLOT[key] === undefined ? 15 : LANG_SLOT[key]; }
+function langSlot(key){ key = canonExt(key); return LANG_SLOT[key] === undefined ? 15 : LANG_SLOT[key]; }
 function langName(key){
   if(key === 'other') return tr('其他');
-  const L = LANGS[key];
+  const L = LANGS[canonExt(key)];
   if(L) return tr(L.n);                 /* 走词典：语言包可覆盖文件类型名 */
   if(EXT_NAME[key]) return tr(EXT_NAME[key]);
   return String(key).toUpperCase();
@@ -974,7 +1053,7 @@ function langColor(key){
 /* 语言在不同皮肤下的默认搭配 */
 const SKIN_PALETTE = { nothing:'nothing', plain:'classic', midnight:'aurora', cyber:'neon',
                        terminal:'mono', paper:'classic', dusk:'warm' };
-const TEXT_EXT = new Set(Object.keys(LANGS).concat([
+const TEXT_EXT = new Set(Object.keys(LANGS).concat(Object.keys(EXT_ALIAS)).concat([
   'gitignore','editorconfig','env','lock','license','makefile','mk','cmake','log','csv','tsv','cfg','reg',
   'hex','uvproj','uvprojx','uvoptx','ioc'
 ]));
@@ -1067,7 +1146,7 @@ function translateStaticDOM(){
 /* ---------- 字体：按类别分别指定字体族 ---------- */
 const FONT_CATS = [
   { id:'ui',   n:'界面文字',   vars:['--font-ui'],   def:'"DotMatrix","FusionPixel12","Microsoft YaHei",system-ui,sans-serif' },
-  { id:'mono', n:'代码等宽',   vars:['--font-mono'], def:'"Cascadia Code",Consolas,"JetBrains Mono",monospace' },
+  { id:'mono', n:'代码等宽',   vars:['--font-mono'], def:'"Cascadia Code",Consolas,"JetBrains Mono",var(--font-cjk),monospace' },
   { id:'dot',  n:'数字与点阵', vars:['--font-dot'],  def:'"DotMatrix","FusionPixel12","Cascadia Code",Consolas,"Segoe UI","Microsoft YaHei",sans-serif' },
   { id:'mix',  n:'混合文本',   vars:['--font-mix'],  def:'"FusionPixel12","Microsoft YaHei",system-ui,sans-serif' }
 ];
@@ -1079,10 +1158,10 @@ const FONT_PRESETS = [
   { n:'Yu Gothic UI', v:'"Yu Gothic UI","Yu Gothic","Meiryo",sans-serif' },
   { n:'Meiryo',     v:'"Meiryo","Yu Gothic UI",sans-serif' },
   { n:'Segoe UI',   v:'"Segoe UI",system-ui,sans-serif' },
-  { n:'Cascadia Code', v:'"Cascadia Code",Consolas,monospace' },
-  { n:'Consolas',   v:'Consolas,"Cascadia Code",monospace' },
-  { n:'JetBrains Mono', v:'"JetBrains Mono",Consolas,monospace' },
-  { n:'等宽通用',   v:'ui-monospace,Consolas,monospace' }
+  { n:'Cascadia Code', v:'"Cascadia Code",Consolas,var(--font-cjk),monospace' },
+  { n:'Consolas',   v:'Consolas,"Cascadia Code",var(--font-cjk),monospace' },
+  { n:'JetBrains Mono', v:'"JetBrains Mono",Consolas,var(--font-cjk),monospace' },
+  { n:'等宽通用',   v:'ui-monospace,Consolas,var(--font-cjk),monospace' }
 ];
 function applyFonts(){
   const st = document.documentElement.style;
@@ -1186,6 +1265,9 @@ function applyLang(id){
   renderAll();
   updateStatus();
   prefsSave();
+  /* “自动（编码）”是运行时拼的，静态翻译器认不出，切语言后重刷一次。
+     脚本初始化阶段 ED 可能尚未就绪（TDZ），此时退回异步执行。 */
+  try{ refreshEncLabel(); }catch(e){ setTimeout(() => { if(typeof refreshEncLabel === 'function') refreshEncLabel(); }, 0); }
 }
 
 /* ---------- 语言包安装 / 导出 ---------- */
@@ -1378,7 +1460,7 @@ async function fileNode(file, path, getFile){
   const name = file.name, ext = extOf(name);
   const n = {
     kind:'file', name, path, ext, size:file.size, mtime:file.lastModified,
-    lines:0, code:0, blank:0, comment:0, big:false, getFile, _txt:null,
+    lines:0, code:0, blank:0, comment:0, big:false, getFile,
     pk: previewKind(ext)
   };
   const isText = TEXT_EXT.has(ext) || (file.type && file.type.startsWith('text/'));
@@ -1398,7 +1480,6 @@ async function fileNode(file, path, getFile){
       }
       n.lines = total; n.blank = blank; n.comment = comment;
       n.code = Math.max(0, total - blank - comment);
-      if(file.size < 320 * 1024) n._txt = txt;
     }catch(e){ n.big = true; }
   }else{
     n.big = true;
@@ -2240,7 +2321,7 @@ function buildRe(hashLike){
 }
 function highlight(line, ext){
   if(!line) return '';
-  const re = buildRe(HASH_COMMENT.has(ext));
+  const re = buildRe(HASH_COMMENT.has(canonExt(ext)));
   re.lastIndex = 0;
   return esc(line).replace(re, (m, c, s, k, num) => {
     if(c !== undefined) return '<span class="tk-c">' + m + '</span>';
@@ -2275,11 +2356,18 @@ async function getBlob(node, limit){
   const f = await node.getFile();
   return (limit && f.size > limit) ? f.slice(0, limit) : f;
 }
-async function getText(node){
-  if(node._txt != null) return { text:node._txt, full:true };
+/* 预览也要按真实编码解码：GBK/Big5 文件用 UTF-8 读会整页乱码。
+   截断读取时末尾可能切断多字节字符，所以探测用去尾缓冲、解码用宽松模式。 */
+async function readTextAuto(node){
   const b = await getBlob(node, READ_LIMIT);
   if(!b) return null;
-  return { text: await b.text(), full: b.size >= node.size };
+  const u8 = new Uint8Array(await b.arrayBuffer());
+  const full = b.size >= node.size;
+  const probe = full ? u8 : u8.subarray(0, Math.max(0, u8.length - 4));
+  const det = detectEnc(probe);
+  const enc = node._enc || det.enc;
+  node._det = det.enc;
+  return { text: decodeBytesLenient(u8, enc), full, enc, det: det.enc, forced: !!node._enc };
 }
 async function getBuf(node, limit){
   const b = await getBlob(node, limit);
@@ -2330,18 +2418,39 @@ function unzipEntries(buf){
   }
   return list;
 }
-async function unzipRead(buf, e){
+async function unzipRead(buf, e, limit){
+  /* 中央目录里的 usize 不可信（可伪造为 0），按实际解压字节数截断，避免 zip bomb */
+  const cap = limit || (32 << 20);
   const dv = new DataView(buf);
   if(dv.getUint32(e.lho, true) !== 0x04034b50) throw new Error(tr('条目头损坏'));
   const nlen = dv.getUint16(e.lho + 26, true);
   const elen = dv.getUint16(e.lho + 28, true);
   const start = e.lho + 30 + nlen + elen;
   const data = buf.slice(start, start + e.csize);
-  if(e.method === 0) return data;
+  if(e.method === 0){
+    if(data.byteLength > cap) throw new Error(tr('条目过大，已中止解压'));
+    return data;
+  }
   if(e.method !== 8) throw new Error(tr('不支持的压缩方式'));
   if(typeof DecompressionStream === 'undefined') throw new Error(tr('当前浏览器不支持解压'));
-  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return await new Response(stream).arrayBuffer();
+  const reader = new Blob([data]).stream()
+    .pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const chunks = [];
+  let total = 0;
+  for(;;){
+    const { done, value } = await reader.read();
+    if(done) break;
+    total += value.byteLength;
+    if(total > cap){
+      try{ await reader.cancel(); }catch(_){}
+      throw new Error(tr('条目过大，已中止解压'));
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for(const c of chunks){ out.set(c, off); off += c.byteLength; }
+  return out.buffer;
 }
 function xmlDecode(s){
   return s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
@@ -2451,11 +2560,13 @@ function csvTable(text, sep){
 
 /* ---------- 各类型渲染 ---------- */
 async function pvText(node, host, alive){
-  const r = await getText(node);
+  const r = await readTextAuto(node);
   if(!alive()) return;
   if(!r) return pvNoSource(host);
   host.dataset.mode = 'text';
   host.innerHTML = textBlock(r.text, node.ext, !r.full);
+  $('viewer').classList.add('text-view');
+  syncEncSelect(r.det, r.forced ? r.enc : '');
 }
 async function pvImage(node, host, alive){
   if(!node.getFile) return pvNoSource(host);
@@ -2512,7 +2623,7 @@ async function openZipEntry(node, host, alive, buf, list, i){
     return;
   }
   let data = null, err = null;
-  try{ data = await unzipRead(buf, e); }catch(ex){ err = ex; }
+  try{ data = await unzipRead(buf, e, MAXENTRY); }catch(ex){ err = ex; }
   if(!alive()) return;
 
   const back = '<button class="btn ghost" id="zipBack" style="height:22px;padding:0 8px;font-size:11.5px">'
@@ -2552,11 +2663,13 @@ async function pvZip(node, host, alive){
 }
 async function pvSheet(node, host, alive){
   if(node.ext === 'csv' || node.ext === 'tsv'){
-    const r = await getText(node);
+    const r = await readTextAuto(node);
     if(!alive()) return;
     if(!r) return pvNoSource(host);
     host.dataset.mode = 'text';
     host.innerHTML = csvTable(r.text, node.ext === 'tsv' ? '\t' : ',');
+    $('viewer').classList.add('text-view');
+    syncEncSelect(r.det, r.forced ? r.enc : '');
     return;
   }
   return pvOoxml(node, host, alive);
@@ -2699,6 +2812,7 @@ async function buildPreview(node, host){
   const tag = ++PV.token;
   host._pvtag = tag;
   const alive = () => host._pvtag === tag;
+  const vw = $('viewer'); if(vw) vw.classList.remove('text-view');
   host.dataset.mode = 'text';
   host.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--text-3)">' + tr('读取中…') + '</div>';
   const fn = PV_RENDER[node.pk || previewKind(node.ext)] || pvBinary;
@@ -2713,21 +2827,593 @@ async function buildPreview(node, host){
 /* ---------- 全屏预览层 ---------- */
 function openViewer(node){
   if(!node || node.kind !== 'file') return;
+  if(ED.dirty && !edGuard()) return;
+  edReset();
   S.viewing = node;
   $('vwTitle').textContent = node.name;
   $('vwMeta').textContent = langName(node.ext) + ' · ' + fmtBytes(node.size) + ' · ' + node.path;
   $('viewer').classList.add('on');
   $('viewer').classList.toggle('wrap', $('vwWrap').checked);
   buildPreview(node, $('vwBody'));
+  updateEditBtn();
 }
 function closeViewer(){
-  $('viewer').classList.remove('on');
+  if(ED.dirty && !edGuard()) return;
+  edReset();
+  ED.raw = null;                       /* 释放可能达到 6 MB 的编辑缓冲 */
+  $('viewer').classList.remove('on', 'text-view');
   S.viewing = null;
   $('vwBody').innerHTML = '';
   pvClear();
 }
 $('vwClose').onclick = closeViewer;
 $('vwWrap').onchange = () => $('viewer').classList.toggle('wrap', $('vwWrap').checked);
+
+/* ---------------- 编辑器：代码 / 纯文本 / CSV / TSV / XLSX ----------------
+   保存走宿主的「另存为」对话框（CMD:saveAs）：页面在 file:// 下没有写权限，
+   由用户在系统保存框里选择目标路径。 */
+const ED = { node:null, kind:null, area:null, dirty:false, eol:'\n', bom:false,
+             seq:0, sep:',', rows:null, trailing:true, raw:null, enc:'UTF-8',
+             det:'UTF-8', forced:false };
+const ED_MAX = 6 * 1024 * 1024;   /* 单条 WebMessage 的安全上限 */
+const ED_ENCS = ['UTF-8','GBK','Big5','Shift_JIS','EUC-KR','UTF-16LE','UTF-16BE','Windows-1252'];
+function encLabel(e){
+  return e === 'GBK' ? 'gb18030' : e === 'Big5' ? 'big5' : e === 'Shift_JIS' ? 'shift_jis'
+       : e === 'EUC-KR' ? 'euc-kr' : e === 'UTF-16LE' ? 'utf-16le'
+       : e === 'UTF-16BE' ? 'utf-16be' : e === 'Windows-1252' ? 'windows-1252' : 'utf-8';
+}
+function encScore(t, cand){
+  let cjk = 0, kana = 0, hangul = 0, jamo = 0, bad = 0;
+  const n = t.length || 1;
+  for(let i = 0; i < t.length; i++){
+    const c = t.charCodeAt(i);
+    if(c >= 0x3040 && c <= 0x30FF) kana++;
+    else if(c >= 0x3130 && c <= 0x318F) jamo++;      /* 韩文兼容字母：正常韩文很少用 */
+    else if(c >= 0xAC00 && c <= 0xD7AF) hangul++;
+    else if(c >= 0x3400 && c <= 0x9FFF) cjk++;
+    else if(c === 0xFFFD || c < 9 || (c > 13 && c < 32)) bad++;
+    else if(c >= 0xE000 && c <= 0xF8FF) bad++;
+  }
+  let s = cjk;
+  s += (cand === 'Shift_JIS') ? kana * 3 : -kana * 3;
+  s += (cand === 'EUC-KR')
+       ? ((hangul > n * 0.6 && jamo === 0) ? hangul * 3 : -hangul * 2)
+       : -hangul * 2;
+  s -= jamo * 5;
+  s -= bad * 10;
+  return s;
+}
+function decodeBytes(u8, enc){
+  const t = new TextDecoder(encLabel(enc), { fatal:true, ignoreBOM:true }).decode(u8);
+  return t.charCodeAt(0) === 0xFEFF ? t.slice(1) : t;
+}
+function decodeBytesLenient(u8, enc){
+  const t = new TextDecoder(encLabel(enc), { ignoreBOM:true }).decode(u8);
+  return t.charCodeAt(0) === 0xFEFF ? t.slice(1) : t;
+}
+/* 先看 BOM，再严格试 UTF-8，最后按候选编码解码并用“可读字符”打分挑最优。 */
+function detectEnc(u8){
+  if(u8.length >= 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF) return { enc:'UTF-8', bom:true };
+  if(u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE) return { enc:'UTF-16LE', bom:true };
+  if(u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF) return { enc:'UTF-16BE', bom:true };
+  try{ new TextDecoder('utf-8', { fatal:true, ignoreBOM:true }).decode(u8); return { enc:'UTF-8', bom:false }; }catch(e){}
+  let best = null;
+  for(const c of ['GBK','Big5','Shift_JIS','EUC-KR','Windows-1252']){
+    try{
+      const s = encScore(new TextDecoder(encLabel(c), { fatal:true, ignoreBOM:true }).decode(u8), c);
+      if(!best || s > best.s) best = { enc:c, s };
+    }catch(e){}
+  }
+  return { enc: best ? best.enc : 'Windows-1252', bom:false };
+}
+function syncEncSelect(det, forced){
+  const sel = $('vwEnc');
+  if(!sel || !sel.options.length) return;
+  sel.options[0].textContent = tr('自动（{enc}）', { enc: det || '?' });
+  sel.value = forced || '';
+}
+function refreshEncLabel(){
+  const v = $('viewer');
+  if(!v) return;
+  if(ED.node && ED.kind !== 'xlsx'){ syncEncSelect(ED.det, ED.forced ? ED.enc : ''); return; }
+  if(S.viewing && v.classList.contains('text-view'))
+    syncEncSelect(S.viewing._det || '', S.viewing._enc || '');
+}
+(function(){
+  const sel = $('vwEnc');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">' + tr('自动') + '</option>'
+    + ED_ENCS.map(e => '<option>' + e + '</option>').join('');
+  sel.title = tr('编码');
+  sel.onchange = () => {
+    const pick = sel.value;              /* '' = 自动（启发式） */
+    const u8 = ED.raw ? new Uint8Array(ED.raw) : null;
+
+    if(ED.node && ED.kind !== 'xlsx' && u8){
+      const det = detectEnc(u8);
+      const enc = pick || det.enc;
+      if(ED.dirty && !confirm(tr('切换编码会丢弃未保存的修改，继续？'))){ sel.value = ED.enc; return; }
+      let text;
+      try{ text = decodeBytes(u8, enc); }
+      catch(e){ toast(tr('该编码无法解析此文件')); sel.value = ED.enc; return; }
+      const before = ED.kind === 'text' ? (ED.area ? ED.area.value : '')
+                                         : (ED.rows ? csvSerialize(ED.rows, ED.sep) : '');
+      ED.enc = enc;
+      ED.forced = !!pick;
+      ED.det = det.enc;
+      ED.bom = (enc === det.enc) ? det.bom : false;
+      ED.trailing = /\r?\n$/.test(text);
+      if(pick) ED.node._enc = pick; else delete ED.node._enc;
+      if(ED.kind === 'text') renderTextEditor(ED.node, text);
+      else renderSheetEditor(ED.node, text);
+      const after = ED.kind === 'text' ? (ED.area ? ED.area.value : '')
+                                       : (ED.rows ? csvSerialize(ED.rows, ED.sep) : '');
+      if(after === before) toast(tr('编码已切换，内容未变（文件可能是纯 ASCII）'));
+      return;
+    }
+
+    /* 预览态：按所选编码重画 */
+    if(S.viewing){
+      const before = $('vwBody').innerText || '';
+      if(pick) S.viewing._enc = pick; else delete S.viewing._enc;
+      buildPreview(S.viewing, $('vwBody')).then(() => {
+        if(($('vwBody').innerText || '') === before)
+          toast(tr('编码已切换，内容未变（文件可能是纯 ASCII）'));
+      });
+    }
+  };
+})();
+
+function editableKind(n){
+  if(!n || n.kind !== 'file') return null;
+  if(n.pk === 'text') return 'text';
+  if(n.pk === 'sheet' && (n.ext === 'csv' || n.ext === 'tsv')) return 'sheet';
+  if(n.pk === 'ooxml' && (n.ext === 'xlsx' || n.ext === 'xlsm')) return 'xlsx';
+  return null;
+}
+function markDirty(on){
+  ED.dirty = !!on;
+  const v = $('viewer');
+  if(v) v.classList.toggle('ed-dirty', ED.dirty);
+}
+function updateEditBtn(){
+  const btn = $('vwEdit');
+  if(!btn) return;
+  btn.style.display = (!ED.node && editableKind(S.viewing) && window.chrome && window.chrome.webview) ? 'inline-flex' : 'none';
+}
+function edGuard(){
+  if(!ED.dirty) return true;
+  return confirm(tr('有未保存的修改，确定放弃？'));
+}
+function edReset(){
+  ED.node = null; ED.kind = null; ED.area = null; ED.rows = null; ED.dirty = false;
+  ED.wb = null; ED.cellEdits = null;
+  const v = $('viewer'); if(v) v.classList.remove('edit', 'edit-sheet', 'edit-text', 'ed-dirty');
+}
+
+/* ---- 文本编辑器 ---- */
+function renderTextEditor(node, text){
+  const b = $('vwBody');
+  b.dataset.mode = 'edit';
+  $('viewer').classList.add('edit', 'edit-text');
+  b.innerHTML = '<div class="ed"><div class="ed-main"><pre class="ed-gut" id="edGut"></pre>'
+    + '<textarea class="ed-ta" id="edTa" spellcheck="false" wrap="off"></textarea></div></div>';
+  const ta = $('edTa');
+  ta.value = text;
+  ED.area = ta;
+  syncGutter();
+  ta.addEventListener('input', () => { markDirty(true); syncGutter(); });
+  ta.addEventListener('scroll', () => { const g = $('edGut'); if(g) g.scrollTop = ta.scrollTop; });
+  ta.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      ta.setRangeText('  ', ta.selectionStart, ta.selectionEnd, 'end');
+      markDirty(true); syncGutter();
+    }
+  });
+  ta.focus();
+  syncEncSelect(ED.det, ED.forced ? ED.enc : '');
+}
+function syncGutter(){
+  const ta = ED.area, g = $('edGut');
+  if(!ta || !g) return;
+  const n = (ta.value.match(/\n/g) || []).length + 1;
+  let s = '';
+  for(let i = 1; i <= n; i++) s += i + (i < n ? '\n' : '');
+  g.textContent = s;
+  g.scrollTop = ta.scrollTop;
+}
+
+/* ---- 表格编辑器（CSV / TSV） ---- */
+function csvParseAll(text, sep){
+  const rows = [];
+  let row = [], cell = '', q = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(q){
+      if(c === '"'){ if(text[i + 1] === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += c;
+    }else if(c === '"') q = true;
+    else if(c === sep){ row.push(cell); cell = ''; }
+    else if(c === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+    else if(c !== '\r') cell += c;
+  }
+  if(cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+function csvSerialize(rows, sep){
+  const q = v => {
+    v = String(v == null ? '' : v);
+    return (v.indexOf(sep) >= 0 || v.indexOf('"') >= 0 || /[\r\n]/.test(v))
+      ? '"' + v.replace(/"/g, '""') + '"' : v;
+  };
+  return rows.map(r => r.map(q).join(sep)).join('\n');
+}
+function renderSheetEditor(node, text){
+  ED.sep = node.ext === 'tsv' ? '\t' : ',';
+  if(typeof text === 'string'){
+    ED.rows = csvParseAll(text, ED.sep);
+    if(!ED.rows.length) ED.rows = [['']];
+  }
+  let cols = 1;
+  ED.rows.forEach(r => { if(r.length > cols) cols = r.length; });
+  ED.rows.forEach(r => { while(r.length < cols) r.push(''); });
+  const b = $('vwBody');
+  b.dataset.mode = 'edit';
+  $('viewer').classList.add('edit', 'edit-sheet', 'edit-text');
+  let html = '<div class="ed"><div class="ed-grid-wrap"><table class="ed-grid"><tbody>';
+  ED.rows.forEach((r, ri) => {
+    html += '<tr>' + r.map((c, ci) =>
+      '<td contenteditable="true" data-r="' + ri + '" data-c="' + ci + '">' + esc(c) + '</td>').join('') + '</tr>';
+  });
+  html += '</tbody></table></div></div>';
+  b.innerHTML = html;
+  b.querySelector('.ed-grid').addEventListener('input', e => {
+    const td = e.target.closest('td');
+    if(!td) return;
+    ED.rows[+td.dataset.r][+td.dataset.c] = td.textContent;
+    markDirty(true);
+  });
+  syncEncSelect(ED.det, ED.forced ? ED.enc : '');
+}
+
+function addSheetRow(){
+  if(ED.kind !== 'sheet' || !ED.rows) return;
+  ED.rows.push(new Array(ED.rows[0] ? ED.rows[0].length : 1).fill(''));
+  markDirty(true);
+  renderSheetEditor(ED.node);
+}
+
+/* ---- 打开 / 保存 ---- */
+async function openEditor(node){
+  if(!(window.chrome && window.chrome.webview)){
+    toast(tr('编辑需在桌面应用中通过「打开文件夹」载入目录'));
+    return;
+  }
+  const kind = editableKind(node);
+  if(!kind) return;
+  if(ED.dirty && !edGuard()) return;
+  if(!node.getFile){ toast(tr('读取失败')); return; }
+  const f = await node.getFile();
+  if(!f){ toast(tr('文件超过读取上限，已禁用编辑')); return; }
+  const buf = await f.arrayBuffer();
+  if(buf.byteLength > ED_MAX){ toast(tr('文件过大，暂不支持保存（上限 6 MB）')); return; }
+  if(kind === 'xlsx'){
+    let wb;
+    try{ wb = await xlsxParse(buf); }
+    catch(e){ toast(tr('无法解析该工作表')); return; }
+    if(!wb.sheets.length){ toast(tr('无法解析该工作表')); return; }
+    edReset();
+    ED.node = node;
+    renderXlsxEditor(node, wb);
+    updateEditBtn();
+    return;
+  }
+  const u8 = new Uint8Array(buf);
+  const det = detectEnc(u8);
+  ED.raw = buf;
+  ED.det = det.enc;
+  ED.forced = !!node._enc;
+  ED.enc = node._enc || det.enc;
+  ED.bom = (ED.enc === det.enc) ? det.bom : false;
+  let text;
+  try{ text = decodeBytes(u8, ED.enc); }
+  catch(e){ ED.enc = 'Windows-1252'; ED.bom = false; text = decodeBytes(u8, ED.enc); }
+  ED.eol = /\r\n/.test(text) ? '\r\n' : '\n';
+  ED.trailing = /\r?\n$/.test(text);
+  edReset();
+  ED.node = node; ED.kind = kind;
+  if(kind === 'text') renderTextEditor(node, text);
+  else renderSheetEditor(node, text);
+  updateEditBtn();
+}
+function edTextBytes(body){
+  let out = String(body).replace(/\r\n/g, '\n');
+  if(ED.eol !== '\n') out = out.replace(/\n/g, ED.eol);
+  if(ED.trailing && !/\r?\n$/.test(body)) out += ED.eol;
+  return new TextEncoder().encode(out);
+}
+/* 另存为：走宿主保存对话框，不依赖项目根目录授权 */
+async function saveAsEditor(){
+  if(!ED.node) return;
+  let bytes, enc = 'bin', bom = false;
+  if(ED.kind === 'xlsx'){
+    bytes = await xlsxBuildBytes();
+    if(!bytes){ toast(tr('没有需要保存的修改')); return; }
+  }else{
+    const body = ED.kind === 'text' ? ED.area.value : csvSerialize(ED.rows, ED.sep);
+    bytes = edTextBytes(body);
+    enc = encLabel(ED.enc);
+    bom = ED.bom;
+  }
+  if(bytes.length > ED_MAX){ toast(tr('文件过大，暂不支持保存（上限 6 MB）')); return; }
+  const id = String(++ED.seq);
+  window.__cmWriteResult = (rid, ok, msg) => {
+    if(rid !== id) return;
+    if(ok){
+      if(ED.kind === 'xlsx') ED.cellEdits = {};   /* 改动已写进 sh.doc，无需重放 */
+      markDirty(false);
+      toast(tr('已另存为：') + msg);
+      return;
+    }
+    if(msg === 'cancelled') return;
+    const m = msg === 'encoding cannot represent all characters'
+      ? tr('部分字符无法用该编码保存') : (msg || '');
+    toast(tr('保存失败：') + m);
+  };
+  window.chrome.webview.postMessage('CMD:saveAs|' + id + '|' + ED.node.name + '|' + enc + '|'
+    + (bom ? '1' : '0') + '|' + b64Utf8Bytes(bytes));
+}
+$('vwEdit').onclick = () => { if(S.viewing) openEditor(S.viewing); };
+$('vwSaveAs').onclick = saveAsEditor;
+$('vwAddRow').onclick = addSheetRow;
+
+/* ---------------- XLSX 单元格编辑 ----------------
+   只改写被编辑过的 <c>，其余条目原样重新打包；不动样式、行列属性与其他工作表。 */
+let CRC_TAB = null;
+function crc32(u8){
+  if(!CRC_TAB){
+    CRC_TAB = new Uint32Array(256);
+    for(let i = 0; i < 256; i++){
+      let c = i;
+      for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      CRC_TAB[i] = c >>> 0;
+    }
+  }
+  let crc = 0xFFFFFFFF;
+  for(let i = 0; i < u8.length; i++) crc = CRC_TAB[(crc ^ u8[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+async function deflateRaw(u8){
+  if(typeof CompressionStream === 'undefined') return null;
+  const cs = new CompressionStream('deflate-raw');
+  const ab = await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer();
+  return new Uint8Array(ab);
+}
+async function zipBuild(entries){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  for(const e of entries){
+    const name = enc.encode(e.name);
+    const crc = crc32(e.data);
+    const comp = await deflateRaw(e.data);
+    const store = !comp || comp.length >= e.data.length;
+    const data = store ? e.data : comp;
+    const method = store ? 0 : 8;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);
+    lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, method, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, e.data.length, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);
+    ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true);
+    ch.setUint16(12, 0, true); ch.setUint16(14, 0, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, e.data.length, true);
+    ch.setUint16(28, name.length, true);
+    ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
+    ch.setUint16(34, 0, true); ch.setUint16(36, 0, true);
+    ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  }
+  let cdSize = 0;
+  for(const p of central) cdSize += p.length;
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0, 0x06054b50, true);
+  eo.setUint16(4, 0, true); eo.setUint16(6, 0, true);
+  eo.setUint16(8, entries.length, true); eo.setUint16(10, entries.length, true);
+  eo.setUint32(12, cdSize, true); eo.setUint32(16, offset, true); eo.setUint16(20, 0, true);
+  const all = parts.concat(central, [new Uint8Array(eo.buffer)]);
+  let total = 0; for(const p of all) total += p.length;
+  const out = new Uint8Array(total); let pos = 0;
+  for(const p of all){ out.set(p, pos); pos += p.length; }
+  return out;
+}
+function xmlOf(s){ return new DOMParser().parseFromString(s, 'application/xml'); }
+function colOf(ref){
+  const m = String(ref).match(/^[A-Z]+/i);
+  if(!m) return 0;
+  let n = 0;
+  for(const ch of m[0].toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64);
+  return n;
+}
+function colName(n){
+  let s = '';
+  while(n > 0){ const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = (n - 1 - r) / 26; }
+  return s;
+}
+function cellText(c, pool){
+  if(!c) return '';
+  const t = c.getAttribute('t');
+  const v = c.getElementsByTagName('v')[0];
+  if(t === 's') return v ? (pool[+v.textContent] || '') : '';
+  if(t === 'inlineStr'){
+    let s = '';
+    for(const n of c.getElementsByTagName('t')) s += n.textContent;
+    return s;
+  }
+  if(t === 'b') return v ? (v.textContent === '1' ? 'TRUE' : 'FALSE') : '';
+  return v ? v.textContent : '';
+}
+async function xlsxParse(buf){
+  const entries = unzipEntries(buf);
+  const read = async name => {
+    const e = entries.find(x => x.name === name);
+    return e ? new TextDecoder('utf-8').decode(await unzipRead(buf, e)) : '';
+  };
+  const pool = [];
+  const ss = xmlOf(await read('xl/sharedStrings.xml'));
+  for(const si of ss.getElementsByTagName('si')){
+    let s = '';
+    for(const t of si.getElementsByTagName('t')) s += t.textContent;
+    pool.push(s);
+  }
+  const rels = {};
+  const rx = xmlOf(await read('xl/_rels/workbook.xml.rels'));
+  for(const r of rx.getElementsByTagName('Relationship'))
+    rels[r.getAttribute('Id')] = r.getAttribute('Target');
+
+  const sheets = [];
+  const wb = xmlOf(await read('xl/workbook.xml'));
+  for(const s of wb.getElementsByTagName('sheet')){
+    let rid = null;
+    for(const a of s.attributes) if(a.localName === 'id') rid = a.value;
+    let tgt = rels[rid] || '';
+    if(tgt.startsWith('/')) tgt = tgt.slice(1);
+    const path = tgt.startsWith('xl/') ? tgt : 'xl/' + tgt;
+    sheets.push({ name: s.getAttribute('name') || ('Sheet' + (sheets.length + 1)), path,
+                  doc: xmlOf(await read(path)) });
+  }
+  return { buf, entries, pool, sheets };
+}
+function patchCell(doc, ref, text){
+  const ns = doc.documentElement.namespaceURI;
+  const sd = doc.getElementsByTagName('sheetData')[0];
+  if(!sd) return;
+  const rowNum = +String(ref).replace(/^[A-Z]+/i, '');
+  let row = null;
+  for(const r of sd.getElementsByTagName('row')) if(+r.getAttribute('r') === rowNum){ row = r; break; }
+  const findC = r => {
+    for(const c of r.getElementsByTagName('c')) if(c.getAttribute('r') === ref) return c;
+    return null;
+  };
+  if(text === ''){
+    if(row){ const c = findC(row); if(c) row.removeChild(c); }
+    return;
+  }
+  let cell = row ? findC(row) : null;
+  if(!cell){
+    if(!row){
+      row = doc.createElementNS(ns, 'row');
+      row.setAttribute('r', String(rowNum));
+      let done = false;
+      for(const r of Array.from(sd.getElementsByTagName('row'))){
+        if(+r.getAttribute('r') > rowNum){ sd.insertBefore(row, r); done = true; break; }
+      }
+      if(!done) sd.appendChild(row);
+    }
+    cell = doc.createElementNS(ns, 'c');
+    cell.setAttribute('r', ref);
+    const col = colOf(ref);
+    let done = false;
+    for(const c of Array.from(row.getElementsByTagName('c'))){
+      if(colOf(c.getAttribute('r')) > col){ row.insertBefore(cell, c); done = true; break; }
+    }
+    if(!done) row.appendChild(cell);
+  }
+  while(cell.firstChild) cell.removeChild(cell.firstChild);
+  if(/^-?\d+(\.\d+)?$/.test(text)){
+    cell.removeAttribute('t');
+    const v = doc.createElementNS(ns, 'v'); v.textContent = text; cell.appendChild(v);
+  }else{
+    cell.setAttribute('t', 'inlineStr');
+    const is = doc.createElementNS(ns, 'is');
+    const t = doc.createElementNS(ns, 't');
+    t.setAttribute('xml:space', 'preserve');
+    t.textContent = text;
+    is.appendChild(t); cell.appendChild(is);
+  }
+}
+function xlRenderGrid(){
+  const wrap = $('xlWrap'), sh = ED.wb.sheets[ED.activeSheet];
+  if(!wrap || !sh) return;
+  let maxR = 1, maxC = 1;
+  const map = {};
+  for(const c of sh.doc.getElementsByTagName('c')){
+    const ref = c.getAttribute('r'); if(!ref) continue;
+    const r = +ref.replace(/^[A-Z]+/i, ''), col = colOf(ref);
+    if(r > maxR) maxR = r;
+    if(col > maxC) maxC = col;
+    map[ref] = c;
+  }
+  const ROWS = Math.min(Math.max(maxR + 20, 30), 300);
+  const COLS = Math.min(Math.max(maxC + 5, 10), 40);
+  let html = '<table class="ed-grid xl-grid"><thead><tr><th class="rn"></th>';
+  for(let c = 1; c <= COLS; c++) html += '<th>' + colName(c) + '</th>';
+  html += '</tr></thead><tbody>';
+  for(let r = 1; r <= ROWS; r++){
+    html += '<tr><th class="rn">' + r + '</th>';
+    for(let c = 1; c <= COLS; c++){
+      const ref = colName(c) + r;
+      html += '<td contenteditable="true" data-ref="' + ref + '">'
+        + esc(cellText(map[ref], ED.wb.pool)) + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('td[data-ref]').forEach(td => {
+    td.addEventListener('input', () => {
+      ED.cellEdits[ED.activeSheet + '!' + td.dataset.ref] = td.textContent;
+      markDirty(true);
+    });
+  });
+}
+function renderXlsxEditor(node, wb){
+  const b = $('vwBody');
+  b.dataset.mode = 'edit';
+  $('viewer').classList.add('edit');
+  ED.wb = wb; ED.kind = 'xlsx'; ED.activeSheet = 0; ED.cellEdits = {};
+  let tabs = '';
+  wb.sheets.forEach((s, i) => {
+    tabs += '<button class="xl-tab' + (i === 0 ? ' on' : '') + '" data-i="' + i + '">' + esc(s.name) + '</button>';
+  });
+  b.innerHTML = '<div class="ed"><div class="xl-tabs">' + tabs
+    + '</div><div class="ed-grid-wrap" id="xlWrap"></div></div>';
+  b.querySelectorAll('.xl-tab').forEach(btn => btn.onclick = () => {
+    ED.activeSheet = +btn.dataset.i;
+    b.querySelectorAll('.xl-tab').forEach(x => x.classList.toggle('on', x === btn));
+    xlRenderGrid();
+  });
+  xlRenderGrid();
+}
+async function xlsxBuildBytes(){
+  const enc = new TextEncoder();
+  const mods = {};
+  for(const key of Object.keys(ED.cellEdits || {})){
+    const [si, ref] = key.split('!');
+    const sh = ED.wb.sheets[+si];
+    patchCell(sh.doc, ref, ED.cellEdits[key]);
+    mods[sh.path] = enc.encode(new XMLSerializer().serializeToString(sh.doc));
+  }
+  if(!Object.keys(mods).length) return null;
+  const out = [];
+  for(const e of ED.wb.entries)
+    out.push({ name: e.name, data: mods[e.name] || new Uint8Array(await unzipRead(ED.wb.buf, e)) });
+  return await zipBuild(out);
+}
+function b64Utf8Bytes(u8){
+  let bin = '';
+  const CH = 0x8000;
+  for(let i = 0; i < u8.length; i += CH)
+    bin += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+  return btoa(bin);
+}
 
 /* ---------------- 查找与选中 ---------------- */
 function findByPath(path){
@@ -3292,7 +3978,7 @@ function showHelp(which){
   if(which === 'search'){
     t.textContent = tr('搜索语法');
     const rows = [
-      ['关键词', tr('默认匹配文件名子串，全树搜索；* 与 ? 为通配符')],
+      [tr('关键词'), tr('默认匹配文件名子串，全树搜索；* 与 ? 为通配符')],
       ['ext:js;ts', tr('按扩展名筛选（可多值：js;ts）')],
       ['path:src', tr('路径包含该文本')],
       ['parent:src', tr('上级文件夹包含该文本')],
@@ -3304,7 +3990,7 @@ function showHelp(which){
       ['regex:^app', tr('正则匹配文件名')],
       ['wfn:*.js', tr('整个文件名匹配（含通配符）')],
       ['startwith: / endwith:', tr('以…开头 / 以…结尾 / 整词匹配')],
-      ['空格 / | / !', tr('空格 = 并且，| 表示或者，! 或 - 表示排除')]
+      [tr('空格') + ' / | / !', tr('空格 = 并且，| 表示或者，! 或 - 表示排除')]
     ];
     b.innerHTML = '<p style="margin:0 0 10px;line-height:1.7">'
         + tr('搜索语义对齐 Everything：空格 = 并且，| 表示或者，! 或 - 表示排除，"" 包住含空格的短语；* 与 ? 为通配符。')
@@ -3321,6 +4007,44 @@ function showHelp(which){
     $('helpModal').classList.add('on');    /* 该分支提前 return，需自行打开弹窗 */
     return;
   }
+  if(which === 'preview'){
+    t.textContent = tr('预览格式');
+    const rows = [
+      [tr('代码预览'), tr('语法高亮 + 行号'), 'js ts vue py c cpp cs go rs java html css json xml yml md sql sh ps1 …'],
+      [tr('表格'), tr('解析为表格'), 'csv tsv xlsx xlsm ods'],
+      [tr('文档正文'), tr('提取正文与表格'), 'docx pptx odt ods odp'],
+      [tr('图片'), tr('原图显示'), 'png jpg gif bmp webp ico svg avif tif'],
+      [tr('视频'), tr('内嵌播放器'), 'mp4 webm mov mkv avi wmv flv m4v'],
+      [tr('音频'), tr('内嵌播放器'), 'mp3 wav flac aac ogg m4a wma'],
+      ['PDF', tr('内置阅读器'), 'pdf'],
+      [tr('压缩包'), tr('条目清单，可点开预览'), 'zip jar apk vsix rhi epub xpi'],
+      [tr('其他'), tr('十六进制转储'), tr('未识别的任意扩展名')]
+    ];
+    const limits = [
+      tr('文本单次最多读 8 MB，默认显示前 700 行（可在偏好中调整）。'),
+      tr('文档与压缩包容器最大 48 MB；包内单个条目超过 8 MB 不展开。'),
+      tr('十六进制默认显示前 2 KB（可选 2 / 8 / 32 KB）。'),
+      tr('Word 97–2003（.doc）、PowerPoint 97–2003（.ppt）、Excel 97–2003（.xls）为旧二进制格式，不支持内容解析，将以十六进制显示。'),
+      tr('PDF 使用 WebView2 内置阅读器，若被组策略禁用则显示空白。')
+    ];
+    b.innerHTML = '<p style="margin:0 0 8px;line-height:1.65">'
+        + tr('按扩展名自动选择呈现方式；未能识别的格式一律用十六进制打开，不会出现打不开的文件。')
+        + '</p>'
+        + '<table class="keys">'
+        + '<thead><tr><th>' + tr('类型') + '</th>'
+        + '<th>' + tr('呈现方式') + '</th>'
+        + '<th>' + tr('支持的格式') + '</th></tr></thead><tbody>'
+        + rows.map(r => '<tr><td>' + esc(r[0]) + '</td>'
+            + '<td style="word-break:keep-all">' + esc(r[1]) + '</td>'
+            + '<td style="font-family:var(--font-mono);font-size:11px;word-break:break-word">' + esc(r[2]) + '</td></tr>').join('')
+        + '</tbody></table>'
+        + '<p style="margin:14px 0 4px;font-size:11.5px;color:var(--text-3)">' + tr('读取上限') + '</p>'
+        + '<ul style="margin:0;padding-left:16px;font-size:11.5px;color:var(--text-2);line-height:1.5">'
+        + limits.map(x => '<li>' + esc(x) + '</li>').join('')
+        + '</ul>';
+    $('helpModal').classList.add('on');    /* 该分支提前 return，需自行打开弹窗 */
+    return;
+  }
   if(which === 'about'){
     t.textContent = tr('关于 CodeMap');
     b.innerHTML =
@@ -3330,15 +4054,16 @@ function showHelp(which){
       +   '</svg>'
       +   '<div>'
       +     '<div style="font-size:15px;font-weight:400;line-height:1.3">CodeMap</div>'
-      +     '<div style="font-size:11px;color:var(--text-3);margin-top:2px">' + tr('版本 1.4.11 (x64) · 单文件 · 免安装') + '</div>'
+      +     '<div style="font-size:11px;color:var(--text-3);margin-top:2px">' + tr('版本 1.4.12 (x64) · 单文件 · 免安装') + '</div>'
       +   '</div>'
       + '</div>'
       + '<p style="margin-bottom:10px">' + tr('把任意本地代码目录渲染成') + '<b style="color:var(--text)">' + tr('可下钻的矩形地图') + '</b>' + tr('：面积越大体量越大，颜色代表语言，双击即可逐层深入。') + '</p>'
       + '<div style="font-size:12px;color:var(--text-2);line-height:1.95;margin-bottom:11px">'
       +   tr('· 地图 / 列表双视图，代码行 · 体积 · 文件数三种度量') + '<br>'
-      +   tr('· 60+ 语言识别，6 套皮肤 × 6 套语言配色，强调色自定义') + '<br>'
+      +   tr('· 60+ 语言识别，7 套皮肤 × 7 套语言配色，强调色自定义') + '<br>'
       +   tr('· Everything 风格搜索：ext: / path: / size: / dm: 等操作符，全树即时匹配') + '<br>'
       +   tr('· 内置预览：代码高亮 / 图片 / 音视频 / PDF / Office 文档 / CSV / 压缩包') + '<br>'
+      +   tr('· 内置编辑：代码 / 纯文本 / CSV / XLSX，保存走「另存为」') + '<br>'
       +   tr('· 右键复制路径 · 导出 PNG · 一键忽略 node_modules 等依赖目录')
       + '</div>'
       + '<p style="font-size:12px;margin-bottom:10px;padding:7px 10px;background:var(--accent-soft);border-radius:7px;color:var(--text-2)">'
@@ -3353,6 +4078,7 @@ function showHelp(which){
     b.innerHTML = '<table class="keys">'
       + '<tr>' + '<td>' + 'Ctrl+O' + '</td>' + '<td>' + tr('打开文件夹') + '</td>' + '</tr>'
       + '<tr>' + '<td>' + 'Ctrl+F' + '</td>' + '<td>' + tr('聚焦搜索框') + '</td>' + '</tr>'
+      + '<tr>' + '<td>' + 'Ctrl+S' + '</td>' + '<td>' + tr('另存为（编辑时）') + '</td>' + '</tr>'
       + '<tr>' + '<td>' + 'Esc' + '</td>' + '<td>' + tr('关闭弹层 / 预览') + '</td>' + '</tr>'
       + '<tr>' + '<td>' + tr('单击') + '</td>' + '<td>' + tr('查看详情') + '</td>' + '</tr>'
       + '<tr>' + '<td>' + tr('双击') + '</td>' + '<td>' + tr('进入目录') + '</td>' + '</tr>'
@@ -3434,6 +4160,7 @@ document.querySelectorAll('#menus .mi').forEach(it => {
     else if(act === 'prefs')       openPrefs();
     else if(act === 'shortcuts') showHelp('keys');
     else if(act === 'search')    showHelp('search');
+    else if(act === 'preview')   showHelp('preview');
     else if(act === 'about')     showHelp('about');
     const menu = it.closest('.menu'); if(menu) menu.classList.remove('open');
   });
@@ -3512,8 +4239,15 @@ $('qClear').onclick = () => {
 };
 
 document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's' && ED.node){
+    e.preventDefault(); saveAsEditor(); return;
+  }
   if(e.key === 'Escape' && $('viewer').classList.contains('on')){ closeViewer(); return; }
-  if(e.target.tagName === 'INPUT'){ if(e.key === 'Escape'){ e.target.blur(); e.preventDefault(); } return; }
+  const tg = e.target.tagName;
+  if(tg === 'INPUT' || tg === 'TEXTAREA' || e.target.isContentEditable){
+    if(e.key === 'Escape'){ e.target.blur(); e.preventDefault(); }
+    return;
+  }
   if((e.key === 'Backspace' || e.key === 'Escape') && S.cwd && S.cwd.parent){
     e.preventDefault(); goto(S.cwd.parent);
   }
@@ -3653,7 +4387,7 @@ function openFolder(){
   };
   inp.click();
 }
-$('btnOpen') && ($('btnOpen').onclick = openFolder);
+/* 「打开文件夹」入口：菜单、状态栏根节点、Ctrl+O、拖拽、空态按钮 */
 
 function finishLoad(name, cost){
   endScan();
@@ -3664,7 +4398,7 @@ function finishLoad(name, cost){
     if(node.kind === 'file'){
       node.getFile = node.getFile || null;
       node.pk = node.pk || previewKind(node.ext);
-      node._langs = new Map([[node.ext || 'other',
+      node._langs = new Map([[canonExt(node.ext) || 'other',
         { lines:node.lines || 0, size:node.size || 0, files:1 }]]);
       node.agg = { lines:node.lines || 0, size:node.size || 0, files:1, bytes:node.size || 0,
                    code:node.code || 0, blank:node.blank || 0, comment:node.comment || 0 };

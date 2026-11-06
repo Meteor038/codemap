@@ -5,8 +5,8 @@
 <p>
   <a href="https://github.com/Meteor038/codemap/releases/latest"><img alt="Download" src="https://img.shields.io/badge/download-CodeMap.exe-e63225"></a>
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011%20x64-0078D4">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.4.11-black">
-  <img alt="Size" src="https://img.shields.io/badge/exe-0.87%20MB-2ea44f">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.4.12-black">
+  <img alt="Size" src="https://img.shields.io/badge/exe-0.93%20MB-2ea44f">
   <img alt="Dependencies" src="https://img.shields.io/badge/dependencies-none-2ea44f">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
 </p>
@@ -21,14 +21,15 @@
 - [2. 核心特性](#2-核心特性)
 - [3. 下载与运行](#3-下载与运行)
 - [4. 五分钟上手](#4-五分钟上手)
-- [5. 文档](#5-文档)
-- [6. 从源码构建](#6-从源码构建)
-- [7. 项目结构](#7-项目结构)
-- [8. 技术实现](#8-技术实现)
-- [9. 隐私与安全](#9-隐私与安全)
-- [10. 已知限制](#10-已知限制)
-- [11. 许可](#11-许可)
-- [12. 致谢](#12-致谢)
+- [5. 编辑](#5-编辑)
+- [6. 文档](#6-文档)
+- [7. 从源码构建](#7-从源码构建)
+- [8. 项目结构](#8-项目结构)
+- [9. 技术实现](#9-技术实现)
+- [10. 隐私与安全](#10-隐私与安全)
+- [11. 已知限制](#11-已知限制)
+- [12. 许可](#12-许可)
+- [13. 致谢](#13-致谢)
 
 ---
 
@@ -56,6 +57,7 @@ CodeMap 把一个目录**一次性铺成一张地图**：
 | **双视图** | 可下钻的地图；带排序的列表（7 列，点表头切换排序列与方向） |
 | **全树搜索** | 扁平索引 + 表达式语法，语义对齐 voidtools Everything：`ext:` `path:` `size:` `dm:` `!` `\|` `*` `""` |
 | **内置预览** | 代码高亮 / 图片 / 音视频 / PDF / CSV 表格 / 二进制十六进制 |
+| **内置编辑** | 代码 / 纯文本、CSV / TSV、XLSX 单元格；保存走「另存为」，支持编码识别与手动切换 |
 | **Office 解析** | docx（段落 + 表格）、xlsx（多工作表表格）、pptx（按页）直接解压渲染，无需安装 Office |
 | **压缩包浏览** | ZIP 列出清单，条目可点开预览（文本走语法高亮，其他走十六进制） |
 | **多语言** | 简体中文、繁體中文、English、日本語；支持导入自定义语言包 |
@@ -65,7 +67,7 @@ CodeMap 把一个目录**一次性铺成一张地图**：
 
 ## 3. 下载与运行
 
-[**下载 CodeMap.exe**](https://github.com/Meteor038/codemap/releases/latest)（约 0.87 MB）—— **双击即可运行，免安装**。
+[**下载 CodeMap.exe**](https://github.com/Meteor038/codemap/releases/latest)（约 0.93 MB）—— **双击即可运行，免安装**。
 
 历史版本与更新记录见 [Releases](https://github.com/Meteor038/codemap/releases)。
 
@@ -89,7 +91,27 @@ CodeMap 把一个目录**一次性铺成一张地图**：
 
 完整功能说明见 **[使用手册](docs/USAGE.md)**。
 
-## 5. 文档
+## 5. 编辑
+
+从 1.4.12 起，全屏预览不再只是"看"——代码、表格和 Excel 可以直接改。
+
+| 类型 | 编辑方式 |
+|---|---|
+| **代码 / 纯文本** | 行号 + 等宽编辑区；`Tab` 插入两个空格；保留原换行符（CRLF / LF）、BOM 与末尾换行 |
+| **CSV / TSV** | 单元格网格，可追加行；写回时按 CSV 规则自动加引号与转义 |
+| **XLSX / XLSM** | 多工作表 + 单元格网格；只改写被编辑的单元格，保留原有样式与其他部件 |
+
+**保存只有「另存为」**（标题栏按钮或 `Ctrl+S`）：弹出系统保存框选择目标路径，**不做原位覆盖**。
+因此不会要求选择"项目根目录"，也不会在你未确认时改动源文件。
+若目标编码无法表示某些字符（例如用 GBK 保存 emoji），保存会被拒绝并提示，而不是静默写成 `?`。
+
+**编码**：自动识别 UTF-8（含 BOM）、UTF-16 LE / BE、GBK / GB18030、Big5、Shift_JIS、EUC-KR、Windows-1252；
+标题栏下拉显示「自动（实际编码）」，可手动纠正。预览与编辑共用同一识别结果。
+
+**边界**：单文件编辑上限 6 MB；xlsx 不解析数字格式（日期显示为序列值），编辑含公式的单元格会替换为字面量；
+DOCX / PPTX 仍为只读预览。
+
+## 6. 文档
 
 | 文档 | 内容 |
 |---|---|
@@ -98,7 +120,7 @@ CodeMap 把一个目录**一次性铺成一张地图**：
 | [OFL.txt](OFL.txt) | 内嵌字体的 SIL Open Font License 1.1 全文与版权声明 |
 | [LICENSE](LICENSE) | MIT 许可证 |
 
-## 6. 从源码构建
+## 7. 从源码构建
 
 | 依赖 | 用途 | 说明 |
 |---|---|---|
@@ -123,16 +145,16 @@ nuget install Microsoft.Web.WebView2 -OutputDirectory build\tmp
 python build-exe.py
 ```
 
-产物：`build\CodeMap.exe`（约 0.87 MB）。静态链接 `WebView2LoaderStatic.lib`，**不依赖任何外部 DLL**。
+产物：`build\CodeMap.exe`（约 0.93 MB）。静态链接 `WebView2LoaderStatic.lib`，**不依赖任何外部 DLL**。
 
 > 页面本体 `CodeMap-source/CodeMap.html` 是单文件应用，**可直接用浏览器打开调试**，无需构建；
 > 但浏览器环境缺少本机绝对路径回填与窗口控件，仅适合调界面。
 
-## 7. 项目结构
+## 8. 项目结构
 
 ```
 CodeMap-source/
-  CodeMap.html      单文件应用本体（HTML + CSS + JS + 内嵌字体，约 596 KB）
+  CodeMap.html      单文件应用本体（HTML + CSS + JS + 内嵌字体，约 638 KB）
   CodeMap.ico       应用图标源文件（9 种尺寸）
 build/
   CodeMap.cpp       Win32 + WebView2 宿主源码
@@ -144,7 +166,7 @@ docs/
   Nothing-Art-Demo.html  Nothing 设计语言的美术演示页（独立单页，与主程序无关）
 ```
 
-## 8. 技术实现
+## 9. 技术实现
 
 | 层 | 选型 | 说明 |
 |---|---|---|
@@ -158,17 +180,17 @@ docs/
 | 存储 | `localStorage` | 偏好、语言包、面板宽度 |
 | 字体 | Fusion Pixel Font（OFL-1.1）+ Doto 子集 | 内嵌为 base64 woff2，见 [THIRD-PARTY.md](THIRD-PARTY.md) |
 
-**体积构成**：exe 0.87 MB ≈ 应用本体 0.58 MB + 宿主与资源 0.29 MB。同等功能的 Electron 方案通常约 200 MB。
+**体积构成**：exe 0.93 MB ≈ 应用本体 0.62 MB + 宿主与资源 0.31 MB。同等功能的 Electron 方案通常约 200 MB。
 
-## 9. 隐私与安全
+## 10. 隐私与安全
 
 - **全程本地**：不发起任何网络请求，不使用 CDN，不加载远程资源。
 - **无遥测**：不收集、不上传任何使用数据。
 - **无外部进程**：不调用命令行工具，不启动后台服务，不写注册表。
-- **只读**：不修改、不移动、不删除被分析的任何文件。
+- **默认只读**：不修改、不移动、不删除被分析的任何文件；只有你主动使用「另存为」并选定路径时，才会写出那一个文件。
 - **诊断日志**：仅在本机 `%LOCALAPPDATA%\CodeMap\diagnostic.log` 记录启动与错误信息；超过 1 MB 自动截断，可直接删除。
 
-## 10. 已知限制
+## 11. 已知限制
 
 | 限制 | 说明 |
 |---|---|
@@ -178,15 +200,17 @@ docs/
 | 搜索语法差异 | `regex:` 使用 JavaScript 正则，与 Everything 的 PCRE 存在细微差异 |
 | PDF 依赖系统组件 | 依赖 WebView2 内置 PDF 阅读器；若被组策略禁用则显示空白 |
 | 不记忆窗口尺寸 | 每次启动使用默认窗口大小与位置 |
+| 编辑上限 6 MB | 超过该体积的文件只能预览 |
+| xlsx 编辑不解析数字格式 | 日期显示为序列值；含公式的单元格编辑后变字面量 |
 
 更细的边界与行为见 [使用手册 · 已知限制](docs/USAGE.md)。
 
-## 11. 许可
+## 12. 许可
 
 代码以 [MIT 许可证](LICENSE) 发布。
 内嵌字体属 OFL-1.1 许可的第三方资源：版权声明与许可全文见 [OFL.txt](OFL.txt)，组件清单见 [THIRD-PARTY.md](THIRD-PARTY.md)。
 
-## 12. 致谢
+## 13. 致谢
 
 - [voidtools Everything](https://www.voidtools.com/)（David Carpenter）—— 搜索查询语法的语义参考。
   该软件免费但**源代码未公开**；本项目仅对齐其用户可见的查询语法，搜索内核为独立实现，未使用其任何代码。

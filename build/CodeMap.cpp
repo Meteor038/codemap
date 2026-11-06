@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <cstdlib>
 #include <wrl.h>
 #include "WebView2.h"
 #include "WebView2EnvironmentOptions.h"
@@ -55,6 +56,11 @@ static ComPtr<ICoreWebView2>           g_wv;
 static ComPtr<ICoreWebView2Environment> g_env;
 static bool                            g_debug = false;
 static std::wstring                    g_fileUrl;        /* 降级备用的 file:// URL */
+static std::wstring                    g_saveId;         /* pending "save as": reply id / suggested name / bytes */
+static std::wstring                    g_saveName;
+static std::wstring                    g_saveEnc;        /* utf-8 / gbk / big5 / shift_jis / euc-kr / utf-16le / utf-16be / windows-1252 / bin */
+static bool                            g_saveBom = false;
+static std::vector<BYTE>               g_saveBytes;
 
 /* 前向声明（CapturePreviewToFile / WndProc 用到） */
 static std::wstring DataDir();
@@ -252,7 +258,164 @@ static std::wstring PathToFileUrl(const std::wstring& p)
 /* 弹模态对话框必须回到消息循环里执行，不能阻塞 WebView2 的事件回调。    */
 /* ------------------------------------------------------------------ */
 
+static std::wstring JsEscape(const std::wstring& s)
+{
+    std::wstring o;
+    for (wchar_t c : s) {
+        if (c == L'\\' || c == L'\'' || c == L'"') o += L'\\';
+        if (c == L'\r') continue;
+        if (c == L'\n') { o += L"\\n"; continue; }
+        o += c;
+    }
+    return o;
+}
+
+static int B64Val(wchar_t c)
+{
+    if (c >= L'A' && c <= L'Z') return c - L'A';
+    if (c >= L'a' && c <= L'z') return c - L'a' + 26;
+    if (c >= L'0' && c <= L'9') return c - L'0' + 52;
+    if (c == L'+') return 62;
+    if (c == L'/') return 63;
+    return -1;
+}
+
+static void Base64Decode(const std::wstring& in, std::vector<BYTE>& out)
+{
+    out.clear();
+    out.reserve(in.size() * 3 / 4 + 4);
+    int buf = 0, bits = 0;
+    for (wchar_t c : in) {
+        if (c == L'=') break;
+        int v = B64Val(c);
+        if (v < 0) continue;
+        buf = (buf << 6) | v;
+        bits += 6;
+        if (bits >= 8) {
+            bits -= 8;
+            out.push_back(static_cast<BYTE>((buf >> bits) & 0xFF));
+        }
+    }
+}
+
+static void ReplyWrite(const std::wstring& id, bool ok, const std::wstring& msg)
+{
+    if (!g_wv) return;
+    const std::wstring js =
+        L"(function(){try{window.__cmWriteResult&&window.__cmWriteResult('"
+        + JsEscape(id) + L"'," + (ok ? L"true" : L"false") + L",'"
+        + JsEscape(msg) + L"');}catch(e){}})();";
+    g_wv->ExecuteScript(js.c_str(), nullptr);
+}
+
 #define WM_APP_PICKROOT (WM_APP + 1)
+#define WM_APP_SAVEAS   (WM_APP + 2)
+
+/* Convert UTF-8 text into the requested legacy code page.
+   Returns false when a character cannot be represented (lossy). */
+static bool ConvertForSave(const std::vector<BYTE>& src, const std::wstring& enc, bool bom,
+                           std::vector<BYTE>& out)
+{
+    out.clear();
+    if (enc == L"bin") { out = src; return true; }
+
+    const char* p = src.empty() ? "" : reinterpret_cast<const char*>(src.data());
+    const int len = static_cast<int>(src.size());
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, p, len, nullptr, 0);
+    if (wlen < 0) return false;
+    std::wstring w(static_cast<size_t>(wlen), L'\0');
+    if (wlen) MultiByteToWideChar(CP_UTF8, 0, p, len, &w[0], wlen);
+
+    /* UTF-16 is a wide encoding: WideCharToMultiByte rejects code page 1200/1201,
+       so serialise the UTF-16 buffer directly (wchar_t is 2 bytes on Windows). */
+    if (enc == L"utf-16le" || enc == L"utf-16be") {
+        const bool be = (enc == L"utf-16be");
+        if (bom) { const BYTE b[] = {be ? 0xFE : 0xFF, be ? 0xFF : 0xFE}; out.insert(out.end(), b, b + 2); }
+        for (wchar_t c : w) {
+            const BYTE lo = static_cast<BYTE>(c & 0xFF), hi = static_cast<BYTE>((c >> 8) & 0xFF);
+            out.push_back(be ? hi : lo);
+            out.push_back(be ? lo : hi);
+        }
+        return true;
+    }
+
+    UINT cp = CP_UTF8;
+    if (enc == L"gbk" || enc == L"gb18030")   cp = 936;
+    else if (enc == L"big5")                  cp = 950;
+    else if (enc == L"shift_jis")             cp = 932;
+    else if (enc == L"euc-kr")                cp = 949;
+    else if (enc == L"windows-1252")          cp = 1252;
+
+    BOOL lossy = FALSE;
+    const wchar_t* wp = w.empty() ? L"" : w.c_str();
+    int n = WideCharToMultiByte(cp, 0, wp, static_cast<int>(w.size()), nullptr, 0, "?", &lossy);
+    if (n <= 0 && !w.empty()) return false;      /* unsupported code page / invalid input */
+    std::vector<BYTE> body(static_cast<size_t>(n));
+    if (n) WideCharToMultiByte(cp, 0, wp, static_cast<int>(w.size()),
+                               reinterpret_cast<LPSTR>(body.data()), n, "?", &lossy);
+    if (lossy) return false;   /* would write '?' – refuse instead of silently corrupting */
+
+    out = body;
+    if (bom && cp == CP_UTF8) { const BYTE b[] = {0xEF,0xBB,0xBF}; out.insert(out.begin(), b, b + 3); }
+    return true;
+}
+
+static bool WriteAllBytes(const std::wstring& path, const std::vector<BYTE>& data)
+{
+    HANDLE h = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr,
+                           CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    DWORD w = 0;
+    BOOL ok = data.empty()
+              || (WriteFile(h, data.data(), static_cast<DWORD>(data.size()), &w, nullptr)
+                  && w == data.size());
+    CloseHandle(h);
+    return ok != FALSE;
+}
+
+/* "Save as": the user explicitly picks the destination, so no sandbox is needed.
+   Runs on the message loop (a modal dialog must not
+   be opened from inside the WebMessage callback). */
+static void SaveAsDialog()
+{
+    std::wstring target;
+    ComPtr<IFileSaveDialog> dlg;
+    HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER,
+                                  IID_PPV_ARGS(&dlg));
+    if (SUCCEEDED(hr) && dlg) {
+        if (!g_saveName.empty()) dlg->SetFileName(g_saveName.c_str());
+        COMDLG_FILTERSPEC types[] = { { L"All files", L"*.*" } };
+        dlg->SetFileTypes(1, types);
+        if (SUCCEEDED(dlg->Show(g_hwnd))) {
+            ComPtr<IShellItem> item;
+            if (SUCCEEDED(dlg->GetResult(&item)) && item) {
+                PWSTR p = nullptr;
+                if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &p)) && p) {
+                    target = p;
+                    CoTaskMemFree(p);
+                }
+            }
+        }
+    }
+
+    bool ok = false;
+    bool lossy = false;
+    if (!target.empty()) {
+        std::vector<BYTE> payload;
+        if (!ConvertForSave(g_saveBytes, g_saveEnc, g_saveBom, payload)) {
+            lossy = true;
+        } else {
+            ok = WriteAllBytes(target, payload);
+        }
+    }
+    Log(L"[saveAs] " + (target.empty() ? std::wstring(L"(\u53d6\u6d88)") : target)
+        + (ok ? L" ok" : (lossy ? L" lossy" : L" fail")));
+    ReplyWrite(g_saveId, ok, ok ? target
+                        : (target.empty() ? L"cancelled"
+                                          : (lossy ? L"encoding cannot represent all characters"
+                                                   : L"write failed")));
+    g_saveBytes.clear();
+}
 
 static void PickFolderAndReply()
 {
@@ -282,6 +445,7 @@ static void PickFolderAndReply()
     }
 
     Log(L"[pickRoot] " + (picked.empty() ? std::wstring(L"(\u53d6\u6d88)") : picked));
+
     /* 回填方式：用 ExecuteScript 写全局变量。
        不能用 PostWebMessageAsString —— 那需要页面侧注册 message 监听，
        而 window.chrome.webview.addEventListener 会让 WebView2 跳过整个页面脚本。 */
@@ -415,6 +579,10 @@ static LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l)
 
     case WM_APP_PICKROOT:
         PickFolderAndReply();
+        return 0;
+
+    case WM_APP_SAVEAS:
+        SaveAsDialog();
         return 0;
 
     case WM_DESTROY:
@@ -771,6 +939,24 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow)
                                 }
                                 else if (s.rfind(L"CMD:close", 0) == 0)
                                     PostMessageW(g_hwnd, WM_CLOSE, 0, 0);
+                                else if (s.rfind(L"CMD:saveAs|", 0) == 0) {
+                                    const size_t p1 = s.find(L'|', 11);
+                                    const size_t p2 = (p1 == std::wstring::npos)
+                                                          ? p1 : s.find(L'|', p1 + 1);
+                                    const size_t p3 = (p2 == std::wstring::npos)
+                                                          ? p2 : s.find(L'|', p2 + 1);
+                                    const size_t p4 = (p3 == std::wstring::npos)
+                                                          ? p3 : s.find(L'|', p3 + 1);
+                                    if (p1 != std::wstring::npos && p2 != std::wstring::npos
+                                        && p3 != std::wstring::npos && p4 != std::wstring::npos) {
+                                        g_saveId = s.substr(11, p1 - 11);
+                                        g_saveName = s.substr(p1 + 1, p2 - p1 - 1);
+                                        g_saveEnc = s.substr(p2 + 1, p3 - p2 - 1);
+                                        g_saveBom = (s.substr(p3 + 1, p4 - p3 - 1) == L"1");
+                                        Base64Decode(s.substr(p4 + 1), g_saveBytes);
+                                        PostMessageW(g_hwnd, WM_APP_SAVEAS, 0, 0);
+                                    }
+                                }
                                 else
                                     Log(L"[page] " + s);
                             }

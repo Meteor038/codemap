@@ -87,7 +87,7 @@ for f in ('CodeMap.ico', 'CodeMap.html'):
 
 MANIFEST = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity type="win32" name="CodeMap" version="1.4.11.0" processorArchitecture="amd64"/>
+  <assemblyIdentity type="win32" name="CodeMap" version="1.4.12.0" processorArchitecture="amd64"/>
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
@@ -113,8 +113,8 @@ RC_TEXT = '''#include <windows.h>
 1001 RCDATA    "CodeMap.html"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION    1,4,11,0
- PRODUCTVERSION 1,4,11,0
+ FILEVERSION    1,4,12,0
+ PRODUCTVERSION 1,4,12,0
  FILEFLAGSMASK  0x3fL
  FILEFLAGS      0x0L
  FILEOS         0x40004L
@@ -127,11 +127,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "Meteor\\0"
             VALUE "FileDescription",  "CodeMap - \\u4ee3\\u7801\\u5730\\u56fe\\0"
-            VALUE "FileVersion",      "1.4.11.0\\0"
+            VALUE "FileVersion",      "1.4.12.0\\0"
             VALUE "InternalName",     "CodeMap\\0"
             VALUE "OriginalFilename", "CodeMap.exe\\0"
             VALUE "ProductName",      "CodeMap\\0"
-            VALUE "ProductVersion",   "1.4.11.0\\0"
+            VALUE "ProductVersion",   "1.4.12.0\\0"
         END
     END
     BLOCK "VarFileInfo"
