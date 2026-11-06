@@ -55,6 +55,7 @@ static ComPtr<ICoreWebView2Controller> g_ctrl;
 static ComPtr<ICoreWebView2>           g_wv;
 static ComPtr<ICoreWebView2Environment> g_env;
 static bool                            g_debug = false;
+static bool                            g_offscreen = false;  /* CODEMAP_OFFSCREEN: 测试用，窗口放到屏幕外不覆盖桌面 */
 static std::wstring                    g_fileUrl;        /* 降级备用的 file:// URL */
 static std::wstring                    g_saveId;         /* pending "save as": reply id / suggested name / bytes */
 static std::wstring                    g_saveName;
@@ -733,6 +734,13 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow)
         DeleteFileW(p.c_str());
     }
     Log(L"=== CodeMap 启动 ===");
+    {
+        wchar_t v[8] = {};
+        if (GetEnvironmentVariableW(L"CODEMAP_OFFSCREEN", v, 8) > 0 && v[0] != L'0') {
+            g_offscreen = true;
+            Log(L"[win] CODEMAP_OFFSCREEN=1 (window placed off-screen)");
+        }
+    }
 
     const std::wstring htmlDir = ResolveHtmlDir(hInst);
     /* 直接用 file:// 直载。
@@ -821,7 +829,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow)
     Log(L"[win] 窗口已创建 " + std::to_wstring(wndW) + L"x" + std::to_wstring(wndH));
 
     g_hwnd = hwnd;
-    ShowWindow(hwnd, nCmdShow);
+    /* 测试模式：把窗口挪到可见桌面之外，避免覆盖用户正在使用的画面。
+       必须在 ShowWindow 之前移动，否则会闪现一帧全屏窗口。 */
+    if (g_offscreen)
+        SetWindowPos(hwnd, nullptr, -32000, -32000, 0, 0,
+                     SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    ShowWindow(hwnd, g_offscreen ? SW_SHOWNOACTIVATE : nCmdShow);
     UpdateWindow(hwnd);
 
     const std::wstring udf = DataDir() + L"\\WebView2";
